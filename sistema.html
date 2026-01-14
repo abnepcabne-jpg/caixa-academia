@@ -4,114 +4,176 @@
 <meta charset="UTF-8">
 <title>Caixa Academia</title>
 
-<!-- PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
+:root {
+  --verde: #00e676;
+  --preto: #0f0f0f;
+  --card: #1c1c1c;
+  --cinza: #aaa;
+}
+
 body {
+  margin: 0;
   font-family: Arial, sans-serif;
-  background: #0f0f0f;
+  background: var(--preto);
   color: #fff;
-  padding: 20px;
 }
-h1 {
-  color: #00e676;
+
+header {
+  background: #000;
+  padding: 15px;
   text-align: center;
+  border-bottom: 2px solid var(--verde);
 }
+
+header h1 {
+  margin: 0;
+  color: var(--verde);
+}
+
+.container {
+  padding: 20px;
+  max-width: 1100px;
+  margin: auto;
+}
+
+.section-title {
+  margin: 30px 0 10px;
+  color: var(--verde);
+  border-left: 4px solid var(--verde);
+  padding-left: 10px;
+}
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 15px;
 }
+
 .card {
-  background: #1c1c1c;
+  background: var(--card);
   padding: 15px;
   border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0,0,0,.5);
 }
+
 .card h3 {
-  color: #00e676;
+  margin-top: 0;
+  color: var(--verde);
 }
-input, select {
+
+input {
   width: 100%;
   padding: 10px;
   margin-top: 8px;
   border-radius: 6px;
   border: none;
 }
+
 button {
-  margin-top: 12px;
-  padding: 12px;
   width: 100%;
-  background: #00e676;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 6px;
   border: none;
   font-weight: bold;
-  border-radius: 6px;
   cursor: pointer;
 }
-button.danger {
+
+.btn-primary {
+  background: var(--verde);
+}
+
+.btn-danger {
   background: #ff5252;
 }
-button.secondary {
+
+.btn-secondary {
   background: #2979ff;
 }
+
 .resumo {
   background: #000;
   padding: 20px;
   border-radius: 10px;
   text-align: center;
 }
+
 .valor {
   font-size: 20px;
 }
+
 ul {
-  padding-left: 20px;
+  padding-left: 18px;
+  color: var(--cinza);
 }
 </style>
 </head>
 
 <body>
 
-<h1>💪 Caixa da Academia</h1>
+<header>
+  <h1>💪 Caixa da Academia</h1>
+</header>
 
+<div class="container">
+
+<!-- CAIXA -->
+<h2 class="section-title">Caixa</h2>
 <div class="grid">
 
-<div class="card">
-<h3>Entrada - Aluno</h3>
-<input id="valorEntrada" type="number" placeholder="Valor recebido (R$)">
-<button onclick="addEntrada()">Salvar Entrada</button>
-</div>
+  <div class="card">
+    <h3>Entrada</h3>
+    <input id="valorEntrada" type="number" placeholder="Valor recebido (R$)">
+    <button class="btn-primary" onclick="addEntrada()">Adicionar</button>
+  </div>
 
-<div class="card">
-<h3>Saída - Despesa</h3>
-<input id="valorSaida" type="number" placeholder="Valor pago (R$)">
-<button onclick="addSaida()">Salvar Saída</button>
-</div>
+  <div class="card">
+    <h3>Saída</h3>
+    <input id="valorSaida" type="number" placeholder="Valor pago (R$)">
+    <button class="btn-primary" onclick="addSaida()">Adicionar</button>
+  </div>
 
-<div class="card">
-<h3>👤 Cadastro de Alunos</h3>
-<input id="nomeAluno" placeholder="Nome do aluno">
-<input type="date" id="vencimentoAluno">
-<button onclick="addAluno()">Cadastrar</button>
-</div>
-
-<div class="card">
-<h3>⚠️ Alunos em Atraso</h3>
-<ul id="listaAtraso"></ul>
-<button onclick="copiarMensagem()">Copiar mensagem</button>
-</div>
+  <div class="card resumo">
+    <h3>Resumo</h3>
+    <p class="valor">Entradas: R$ <span id="totalEntradas">0</span></p>
+    <p class="valor">Saídas: R$ <span id="totalSaidas">0</span></p>
+    <hr>
+    <p class="valor"><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
+    <button class="btn-danger" onclick="fecharCaixa()">Fechar Caixa do Dia</button>
+  </div>
 
 </div>
 
-<div class="resumo">
-<h3>📊 Resumo do Caixa</h3>
-<p class="valor">Entradas: R$ <span id="totalEntradas">0</span></p>
-<p class="valor">Saídas: R$ <span id="totalSaidas">0</span></p>
-<hr>
-<p class="valor"><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
+<!-- ALUNOS -->
+<h2 class="section-title">Alunos</h2>
+<div class="grid">
 
-<button class="danger" onclick="fecharCaixa()">Fechar Caixa do Dia</button>
-<button class="secondary" onclick="gerarPDF()">Gerar Relatório Mensal (PDF)</button>
+  <div class="card">
+    <h3>Cadastrar Aluno</h3>
+    <input id="nomeAluno" placeholder="Nome do aluno">
+    <input type="date" id="vencimentoAluno">
+    <button class="btn-primary" onclick="addAluno()">Cadastrar</button>
+  </div>
+
+  <div class="card">
+    <h3>Em atraso</h3>
+    <ul id="listaAtraso"></ul>
+    <button class="btn-secondary" onclick="copiarMensagem()">Copiar mensagem</button>
+  </div>
+
+</div>
+
+<!-- RELATÓRIOS -->
+<h2 class="section-title">Relatórios</h2>
+<div class="grid">
+  <div class="card">
+    <h3>Mensal</h3>
+    <button class="btn-secondary" onclick="gerarPDF()">Gerar PDF</button>
+  </div>
+</div>
+
 </div>
 
 <script>
@@ -125,7 +187,7 @@ let historico = JSON.parse(localStorage.getItem("historico")) || [];
 atualizarResumo();
 verificarAtrasos();
 
-// ===== CAIXA =====
+/* ===== CAIXA ===== */
 function addEntrada() {
   const v = Number(valorEntrada.value);
   if (v > 0) {
@@ -146,12 +208,6 @@ function addSaida() {
   }
 }
 
-function atualizarResumo() {
-  totalEntradasSpan.innerText = totalEntradas.toFixed(2);
-  totalSaidasSpan.innerText = totalSaidas.toFixed(2);
-  saldoSpan.innerText = (totalEntradas - totalSaidas).toFixed(2);
-}
-
 function fecharCaixa() {
   if (!confirm("Deseja fechar o caixa do dia?")) return;
 
@@ -166,17 +222,15 @@ function fecharCaixa() {
   totalSaidas = 0;
   salvar();
   atualizarResumo();
-  alert("Caixa do dia fechado com sucesso!");
 }
 
-function salvar() {
-  localStorage.setItem("totalEntradas", totalEntradas);
-  localStorage.setItem("totalSaidas", totalSaidas);
-  localStorage.setItem("alunos", JSON.stringify(alunos));
-  localStorage.setItem("historico", JSON.stringify(historico));
+function atualizarResumo() {
+  totalEntradasSpan.innerText = totalEntradas.toFixed(2);
+  totalSaidasSpan.innerText = totalSaidas.toFixed(2);
+  saldoSpan.innerText = (totalEntradas - totalSaidas).toFixed(2);
 }
 
-// ===== ALUNOS =====
+/* ===== ALUNOS ===== */
 function addAluno() {
   if (!nomeAluno.value || !vencimentoAluno.value) return;
   alunos.push({ nome: nomeAluno.value, vencimento: vencimentoAluno.value });
@@ -202,11 +256,10 @@ function copiarMensagem() {
   alert("Mensagem copiada!");
 }
 
-// ===== PDF =====
+/* ===== PDF ===== */
 function gerarPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-
   doc.text("Relatório Mensal - Caixa Academia", 10, 10);
   let y = 20;
 
@@ -221,7 +274,14 @@ function gerarPDF() {
   doc.save("relatorio_caixa.pdf");
 }
 
-// atalhos
+function salvar() {
+  localStorage.setItem("totalEntradas", totalEntradas);
+  localStorage.setItem("totalSaidas", totalSaidas);
+  localStorage.setItem("alunos", JSON.stringify(alunos));
+  localStorage.setItem("historico", JSON.stringify(historico));
+}
+
+/* atalhos */
 const totalEntradasSpan = document.getElementById("totalEntradas");
 const totalSaidasSpan = document.getElementById("totalSaidas");
 const saldoSpan = document.getElementById("saldo");
