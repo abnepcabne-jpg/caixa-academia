@@ -4,114 +4,132 @@
 <meta charset="UTF-8">
 <title>Caixa Academia</title>
 
+<!-- PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <style>
 body {
-  font-family: Arial;
-  background: #111;
+  font-family: Arial, sans-serif;
+  background: #0f0f0f;
   color: #fff;
   padding: 20px;
 }
 h1 {
-  color: #00c853;
+  color: #00e676;
+  text-align: center;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
 }
 .card {
-  background: #1e1e1e;
+  background: #1c1c1c;
   padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,.5);
+}
+.card h3 {
+  color: #00e676;
 }
 input, select {
   width: 100%;
-  padding: 8px;
-  margin-top: 5px;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: none;
 }
 button {
-  margin-top: 10px;
-  padding: 10px;
-  background: #00c853;
+  margin-top: 12px;
+  padding: 12px;
+  width: 100%;
+  background: #00e676;
   border: none;
   font-weight: bold;
+  border-radius: 6px;
   cursor: pointer;
-  width: 100%;
+}
+button.danger {
+  background: #ff5252;
+}
+button.secondary {
+  background: #2979ff;
 }
 .resumo {
   background: #000;
-  padding: 15px;
-  border-radius: 8px;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
 }
 .valor {
-  font-size: 18px;
+  font-size: 20px;
+}
+ul {
+  padding-left: 20px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>Caixa da Academia</h1>
+<h1>💪 Caixa da Academia</h1>
 
-<!-- ENTRADA -->
+<div class="grid">
+
 <div class="card">
 <h3>Entrada - Aluno</h3>
-<input placeholder="Nome do aluno">
-<input type="date">
-<select>
-  <option>Pix</option>
-  <option>Dinheiro</option>
-  <option>Cartão</option>
-</select>
-<input placeholder="Responsável que recebeu">
 <input id="valorEntrada" type="number" placeholder="Valor recebido (R$)">
 <button onclick="addEntrada()">Salvar Entrada</button>
 </div>
 
-<!-- SAÍDA -->
 <div class="card">
-<h3>Saída - Despesas</h3>
-<input placeholder="Descrição da despesa">
-<input type="date">
+<h3>Saída - Despesa</h3>
 <input id="valorSaida" type="number" placeholder="Valor pago (R$)">
 <button onclick="addSaida()">Salvar Saída</button>
 </div>
 
-<!-- CADASTRO DE ALUNOS -->
 <div class="card">
 <h3>👤 Cadastro de Alunos</h3>
 <input id="nomeAluno" placeholder="Nome do aluno">
 <input type="date" id="vencimentoAluno">
-<button onclick="addAluno()">Cadastrar Aluno</button>
+<button onclick="addAluno()">Cadastrar</button>
 </div>
 
-<!-- ALUNOS EM ATRASO -->
 <div class="card">
 <h3>⚠️ Alunos em Atraso</h3>
 <ul id="listaAtraso"></ul>
-<button onclick="copiarMensagem()">Copiar mensagem de cobrança</button>
+<button onclick="copiarMensagem()">Copiar mensagem</button>
 </div>
 
-<!-- RESUMO -->
+</div>
+
 <div class="resumo">
 <h3>📊 Resumo do Caixa</h3>
 <p class="valor">Entradas: R$ <span id="totalEntradas">0</span></p>
 <p class="valor">Saídas: R$ <span id="totalSaidas">0</span></p>
 <hr>
 <p class="valor"><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
+
+<button class="danger" onclick="fecharCaixa()">Fechar Caixa do Dia</button>
+<button class="secondary" onclick="gerarPDF()">Gerar Relatório Mensal (PDF)</button>
 </div>
 
 <script>
-// ===== CAIXA =====
+const hoje = new Date().toISOString().split("T")[0];
+
 let totalEntradas = Number(localStorage.getItem("totalEntradas")) || 0;
 let totalSaidas = Number(localStorage.getItem("totalSaidas")) || 0;
-
-// ===== ALUNOS =====
 let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
+let historico = JSON.parse(localStorage.getItem("historico")) || [];
 
 atualizarResumo();
 verificarAtrasos();
 
+// ===== CAIXA =====
 function addEntrada() {
-  const valor = Number(valorEntrada.value);
-  if (valor > 0) {
-    totalEntradas += valor;
+  const v = Number(valorEntrada.value);
+  if (v > 0) {
+    totalEntradas += v;
     salvar();
     atualizarResumo();
     valorEntrada.value = "";
@@ -119,9 +137,9 @@ function addEntrada() {
 }
 
 function addSaida() {
-  const valor = Number(valorSaida.value);
-  if (valor > 0) {
-    totalSaidas += valor;
+  const v = Number(valorSaida.value);
+  if (v > 0) {
+    totalSaidas += v;
     salvar();
     atualizarResumo();
     valorSaida.value = "";
@@ -134,22 +152,34 @@ function atualizarResumo() {
   saldoSpan.innerText = (totalEntradas - totalSaidas).toFixed(2);
 }
 
+function fecharCaixa() {
+  if (!confirm("Deseja fechar o caixa do dia?")) return;
+
+  historico.push({
+    data: hoje,
+    entradas: totalEntradas,
+    saidas: totalSaidas,
+    saldo: totalEntradas - totalSaidas
+  });
+
+  totalEntradas = 0;
+  totalSaidas = 0;
+  salvar();
+  atualizarResumo();
+  alert("Caixa do dia fechado com sucesso!");
+}
+
 function salvar() {
   localStorage.setItem("totalEntradas", totalEntradas);
   localStorage.setItem("totalSaidas", totalSaidas);
   localStorage.setItem("alunos", JSON.stringify(alunos));
+  localStorage.setItem("historico", JSON.stringify(historico));
 }
 
 // ===== ALUNOS =====
 function addAluno() {
-  if (!nomeAluno.value || !vencimentoAluno.value) {
-    alert("Preencha todos os campos");
-    return;
-  }
-  alunos.push({
-    nome: nomeAluno.value,
-    vencimento: vencimentoAluno.value
-  });
+  if (!nomeAluno.value || !vencimentoAluno.value) return;
+  alunos.push({ nome: nomeAluno.value, vencimento: vencimentoAluno.value });
   salvar();
   verificarAtrasos();
   nomeAluno.value = "";
@@ -158,8 +188,6 @@ function addAluno() {
 
 function verificarAtrasos() {
   listaAtraso.innerHTML = "";
-  const hoje = new Date().toISOString().split("T")[0];
-
   alunos.filter(a => a.vencimento < hoje).forEach(a => {
     const li = document.createElement("li");
     li.innerText = `${a.nome} - vencido em ${a.vencimento}`;
@@ -169,9 +197,28 @@ function verificarAtrasos() {
 
 function copiarMensagem() {
   navigator.clipboard.writeText(
-    "Olá, seu pagamento está em atraso. Por favor regularize para evitar o cancelamento da matrícula."
+    "Olá! Seu pagamento está em atraso. Por favor regularize para evitar o cancelamento da matrícula."
   );
   alert("Mensagem copiada!");
+}
+
+// ===== PDF =====
+function gerarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.text("Relatório Mensal - Caixa Academia", 10, 10);
+  let y = 20;
+
+  historico.forEach(h => {
+    doc.text(
+      `Data: ${h.data} | Entradas: R$ ${h.entradas.toFixed(2)} | Saídas: R$ ${h.saidas.toFixed(2)} | Saldo: R$ ${h.saldo.toFixed(2)}`,
+      10, y
+    );
+    y += 10;
+  });
+
+  doc.save("relatorio_caixa.pdf");
 }
 
 // atalhos
