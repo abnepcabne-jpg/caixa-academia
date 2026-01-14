@@ -2,166 +2,204 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Sistema Caixa Academia</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<title>Sistema Academia</title>
+
 <style>
-body{margin:0;font-family:Arial;background:#0f172a;color:#e5e7eb;--corPrincipal:#22c55e}
-.login{display:flex;justify-content:center;align-items:center;height:100vh}
-.login .card{width:320px}
-.sidebar{width:220px;height:100vh;background:#020617;position:fixed;padding:20px}
-.sidebar h2{color:#22c55e;text-align:center}
-.sidebar button{width:100%;margin-top:10px;padding:10px;background:#16a34a;border:none;color:#fff;font-weight:bold;cursor:pointer}
-.main{margin-left:240px;padding:20px}
-.card{background:#020617;padding:15px;border-radius:10px;margin-bottom:20px;box-shadow:0 0 15px rgba(0,0,0,.4)}
-input,select{width:100%;padding:8px;margin-top:5px;border-radius:6px;border:none}
-button.action{background:#22c55e;color:#000;font-weight:bold;padding:10px;width:100%;border:none;border-radius:6px;margin-top:10px;cursor:pointer}
-.dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px}
-.dashboard div{background:#020617;padding:20px;border-radius:10px;text-align:center;font-size:18px}
-ul{padding-left:20px}
-.alerta{position:fixed;right:20px;top:20px;background:#7f1d1d;padding:15px;border-radius:10px;display:none}
+body { font-family: Arial; background:#f2f2f2; margin:0 }
+.card { background:#fff; padding:20px; border-radius:8px; max-width:400px; margin:40px auto }
+input, button { width:100%; padding:10px; margin-top:8px }
+button { cursor:pointer }
+#sistema { display:none }
+.topo { background:#222; color:#fff; padding:10px; display:flex; justify-content:space-between; align-items:center }
+.caixa { max-width:900px; margin:20px auto }
+table { width:100%; border-collapse:collapse }
+th, td { border:1px solid #ccc; padding:8px; text-align:center }
 </style>
 </head>
+
 <body>
 
-<div id="login" class="login" style="background:linear-gradient(135deg,#16a34a,#020617)">
-  <div class="card">
-    <img src="logo.png" style="width:120px;display:block;margin:0 auto 15px"><h3 style="text-align:center">Login do Sistema</h3>
-    <input id="user" placeholder="Usuário">
-    <input id="pass" type="password" placeholder="Senha">
-    <button type="button" class="action" onclick="logar()">Entrar</button>
+<!-- LOGIN -->
+<div id="login" class="card">
+  <img src="logo.png" style="width:120px;display:block;margin:auto">
+  <h3>Login</h3>
+  <input id="user" placeholder="Usuário">
+  <input id="pass" type="password" placeholder="Senha">
+  <button id="btnLogin">Entrar</button>
+</div>
+
+<!-- SISTEMA -->
+<div id="sistema">
+  <div class="topo">
+    <div id="infoUser"></div>
+    <div>
+      <button onclick="abrirTrocaSenha()">Trocar Senha</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="caixa">
+
+    <h3>Cadastrar Aluno</h3>
+    <input id="alunoNome" placeholder="Nome do aluno">
+    <input id="alunoValor" placeholder="Mensalidade">
+    <button onclick="cadastrarAluno()">Cadastrar</button>
+
+    <h3>Alunos</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Aluno</th>
+          <th>Mensalidade</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody id="listaAlunos"></tbody>
+    </table>
+
+    <h3>Adicionar Entrada</h3>
+    <input id="entradaDesc" placeholder="Descrição">
+    <input id="entradaValor" placeholder="Valor">
+    <button onclick="addEntrada()">Adicionar Entrada</button>
+
+    <h3>Adicionar Gasto</h3>
+    <input id="gastoDesc" placeholder="Descrição">
+    <input id="gastoValor" placeholder="Valor">
+    <button onclick="addGasto()">Adicionar Gasto</button>
+
+    <h3>Movimentações</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Descrição</th>
+          <th>Valor</th>
+          <th>Recebido por</th>
+        </tr>
+      </thead>
+      <tbody id="movimentos"></tbody>
+    </table>
+
   </div>
 </div>
 
-<div id="sistema" style="display:none">
-<div class="sidebar">
-<img src="logo.png" alt="Logo da Academia" style="width:100%;margin-bottom:15px;border-radius:8px"><h2>🏋️ Academia</h2>
-<button onclick="mostrar('dashboard')">Dashboard</button>
-<button onclick="mostrar('alunos')">Alunos</button>
-<button onclick="mostrar('caixa')">Caixa</button>
-<button onclick="fecharCaixa()">Fechar Caixa</button>
-<button onclick="gerarPDF()">Relatório PDF</button>
-</div>
-<div class="alerta" id="alertaAtraso"></div>
-<div class="main">
-<section id="dashboard">
-<div class="dashboard">
-<div>Entradas<br>R$ <span id="tEntradas">0</span></div>
-<div>Gastos<br>R$ <span id="tSaidas">0</span></div>
-<div>Saldo<br>R$ <span id="saldo">0</span></div>
-</div>
-</section>
-<section id="alunos" style="display:none">
-<div class="card">
-<h3>Cadastro de Aluno</h3>
-<input id="nomeAluno" placeholder="Nome">
-<input type="number" id="mensalidade" placeholder="Mensalidade">
-<input type="date" id="vencimento">
-<button class="action" onclick="addAluno()">Cadastrar</button>
-</div>
-<div class="card">
-<h3>Lista de Alunos</h3>
-<ul id="listaAlunos"></ul>
-</div>
-</section>
-<div id="modalAluno" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8)">
-<div class="card" style="max-width:400px;margin:10% auto">
-<h3 id="tituloAluno"></h3>
-<ul id="histAluno"></ul>
-<button class="action" onclick="fecharModal()">Fechar</button>
-</div></div>
-<section id="caixa" style="display:none">
-<div class="card">
-<h3>Entrada Manual / Mensalidade</h3>
-<select id="alunoPagamento"></select>
-<input id="descEntrada" placeholder="Descrição">
-<input type="number" id="valorEntrada" placeholder="Valor">
-<button class="action" onclick="pagarAluno()">Registrar Pagamento</button>
-</div>
-<div class="card">
-<h3>Gastos / Despesas</h3>
-<input id="descSaida" placeholder="Descrição">
-<input type="number" id="valorSaida" placeholder="Valor">
-<button class="action" onclick="addSaida()">Adicionar Gasto</button>
-</div>
-</section>
-</div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-// LOGIN
-const USERS=[{user:'admin',pass:'1234',role:'admin'},{user:'funcionario',pass:'123',role:'funcionario'}];let usuarioLogado=null;
-function logar() {
-  const u = document.getElementById("user").value;
-  const p = document.getElementById("pass").value;
+// ===== USUÁRIOS =====
+let users = JSON.parse(localStorage.getItem("users")) || [
+  { user:"admin", pass:"1234", role:"admin" },
+  { user:"funcionario", pass:"123", role:"funcionario" }
+];
 
-  const encontrado = USERS.find(
-    x => x.user === u && x.pass === p
-  );
+let usuarioLogado = null;
+let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
+let movimentos = JSON.parse(localStorage.getItem("movimentos")) || [];
 
-  if (encontrado) {
-    usuarioLogado = encontrado;
-    document.getElementById("login").style.display = "none";
-    document.getElementById("sistema").style.display = "block";
+// ===== LOGIN =====
+document.getElementById("btnLogin").onclick = () => {
+  const u = user.value;
+  const p = pass.value;
+  const achou = users.find(x => x.user === u && x.pass === p);
+  if (!achou) return alert("Login inválido");
+  usuarioLogado = achou;
+  login.style.display = "none";
+  sistema.style.display = "block";
+  infoUser.innerText = `Usuário: ${achou.user}`;
+  atualizar();
+};
 
-    if (encontrado.role === "funcionario") {
-      document.querySelector("button[onclick=\"gerarPDF()\"]").style.display = "none";
-      document.querySelector("button[onclick=\"fecharCaixa()\"]").style.display = "none";
-    }
-  } else {
-    alert("Login inválido");
-  }
+// ===== LOGOUT =====
+function logout() {
+  usuarioLogado = null;
+  sistema.style.display = "none";
+  login.style.display = "block";
 }
 
-
-let entradas=JSON.parse(localStorage.getItem('entradas'))||[];
-let saidas=JSON.parse(localStorage.getItem('saidas'))||[];
-let alunos=JSON.parse(localStorage.getItem('alunos'))||[];
-
-function mostrar(id){document.querySelectorAll('section').forEach(s=>s.style.display='none');document.getElementById(id).style.display='block'}
-function salvar(){localStorage.setItem('entradas',JSON.stringify(entradas));localStorage.setItem('saidas',JSON.stringify(saidas));localStorage.setItem('alunos',JSON.stringify(alunos));atualizar()}
-function atualizar(){let te=entradas.reduce((s,a)=>s+a.valor,0);let ts=saidas.reduce((s,a)=>s+a.valor,0);tEntradas.innerText=te.toFixed(2);tSaidas.innerText=ts.toFixed(2);saldo.innerText=(te-ts).toFixed(2);listarAlunos();carregarSelect();verAtrasos()}
-
-function addAluno(){let n=nomeAluno.value;let m=Number(mensalidade.value);let v=vencimento.value;if(!n||!m||!v)return alert('Preencha tudo');alunos.push({n,m,v,historico:[]});salvar();nomeAluno.value='';mensalidade.value='';vencimento.value=''}
-
-function listarAlunos(){listaAlunos.innerHTML='';alunos.forEach((a,i)=>{let li=document.createElement('li');li.innerHTML=`<b>${a.n}</b> | Mensalidade R$ ${a.m} | Vence ${a.v} <button onclick=\"abrirAluno(${i})\">📄 Ficha</button> <button onclick=\"enviarWhats('${a.n}','${a.v}')\">📲 WhatsApp</button>`;listaAlunos.appendChild(li);})}(){
-  listaAlunos.innerHTML='';
-  alunos.forEach((a,i)=>{
-    let li=document.createElement('li');
-    let btn=document.createElement('button');
-    btn.innerText='📲 WhatsApp';
-    btn.style.marginLeft='10px';
-    btn.onclick=()=>enviarWhats(a.n,a.v);
-    li.innerText=`${a.n} | Mensalidade R$ ${a.m} | Vence ${a.v} `;
-    li.appendChild(btn);
-    listaAlunos.appendChild(li);
-  })
-} | Mensalidade R$ ${a.m} | Vence ${a.v}`;listaAlunos.appendChild(li)})}
-
-function carregarSelect(){alunoPagamento.innerHTML='<option value="">Pagamento Manual</option>';alunos.forEach((a,i)=>{let o=document.createElement('option');o.value=i;o.innerText=a.n;alunoPagamento.appendChild(o)})}
-
-function abrirAluno(i){let a=alunos[i];modalAluno.style.display='block';tituloAluno.innerText='Histórico - '+a.n;histAluno.innerHTML='';a.historico.forEach(h=>{let li=document.createElement('li');li.innerText=`${h.data} - R$ ${h.valor}`;histAluno.appendChild(li)})}
-function fecharModal(){modalAluno.style.display='none'}
-
-function pagarAluno(){let idx=alunoPagamento.value;let valor=Number(valorEntrada.value);let desc=descEntrada.value||'Pagamento';if(valor<=0)return;
-entradas.push({desc,valor,data:new Date().toLocaleDateString()});
-if(idx!==''){alunos[idx].historico.push({data:new Date().toLocaleDateString(),valor});alunos[idx].v=new Date(new Date(alunos[idx].v).setMonth(new Date(alunos[idx].v).getMonth()+1)).toISOString().split('T')[0];}
-salvar();valorEntrada.value='';descEntrada.value=''}
-
-function addSaida(){let d=descSaida.value;let v=Number(valorSaida.value);if(!v)return;saidas.push({d,v,data:new Date().toLocaleDateString()});salvar();descSaida.value='';valorSaida.value=''}
-
-function fecharCaixa(){alert('Caixa do dia fechado!')}
-function gerarPDF(){const {jsPDF}=window.jspdf;let pdf=new jsPDF();pdf.addImage('logo.png','PNG',15,10,30,20);pdf.text('Relatório Mensal - Academia',60,22);let y=45;();pdf.text('Relatório Academia',20,20);let y=40;entradas.forEach(e=>{pdf.text(`Entrada: ${e.desc||e.d} R$${e.valor}`,20,y);y+=8});saidas.forEach(s=>{pdf.text(`Gasto: ${s.d} R$${s.v}`,20,y);y+=8});pdf.save('relatorio.pdf')}
-
-function enviarWhats(nome,venc){
-  let msg=`Olá ${nome}, identificamos que sua mensalidade com vencimento em ${venc} está em atraso. Por favor, regularize para evitar o cancelamento da matrícula.`;
-  let url=`https://wa.me/?text=${encodeURIComponent(msg)}`;
-  window.open(url,'_blank');
+// ===== TROCAR SENHA =====
+function abrirTrocaSenha() {
+  const nova = prompt("Nova senha:");
+  if (!nova) return;
+  const u = users.find(x => x.user === usuarioLogado.user);
+  u.pass = nova;
+  localStorage.setItem("users", JSON.stringify(users));
+  alert("Senha alterada");
 }
 
-function verAtrasos(){let hoje=new Date().toISOString().split('T')[0];let atrasados=alunos.filter(a=>a.v<hoje);if(atrasados.length){alertaAtraso.style.display='block';alertaAtraso.innerHTML='<b>Atrasados:</b><br>'+atrasados.map(a=>a.n).join('<br>')}else alertaAtraso.style.display='none'}
+// ===== ALUNOS =====
+function cadastrarAluno() {
+  const nome = alunoNome.value;
+  const valor = alunoValor.value;
+  if (!nome || !valor) return;
+  alunos.push({ nome, valor });
+  localStorage.setItem("alunos", JSON.stringify(alunos));
+  alunoNome.value = "";
+  alunoValor.value = "";
+  atualizar();
+}
 
-atualizar();
+function pagarMensalidade(nome, valor) {
+  movimentos.push({
+    tipo:"Entrada",
+    desc:`Mensalidade - ${nome}`,
+    valor,
+    por: usuarioLogado.user
+  });
+  salvarMovimentos();
+}
+
+// ===== CAIXA =====
+function addEntrada() {
+  movimentos.push({
+    tipo:"Entrada",
+    desc:entradaDesc.value,
+    valor:entradaValor.value,
+    por:usuarioLogado.user
+  });
+  salvarMovimentos();
+}
+
+function addGasto() {
+  movimentos.push({
+    tipo:"Gasto",
+    desc:gastoDesc.value,
+    valor:gastoValor.value,
+    por:usuarioLogado.user
+  });
+  salvarMovimentos();
+}
+
+function salvarMovimentos() {
+  localStorage.setItem("movimentos", JSON.stringify(movimentos));
+  entradaDesc.value = "";
+  entradaValor.value = "";
+  gastoDesc.value = "";
+  gastoValor.value = "";
+  atualizar();
+}
+
+// ===== ATUALIZAR TELA =====
+function atualizar() {
+  listaAlunos.innerHTML = "";
+  alunos.forEach(a => {
+    listaAlunos.innerHTML += `
+      <tr>
+        <td>${a.nome}</td>
+        <td>R$ ${a.valor}</td>
+        <td><button onclick="pagarMensalidade('${a.nome}',${a.valor})">Receber</button></td>
+      </tr>`;
+  });
+
+  movimentos.innerHTML = "";
+  movimentos.forEach(m => {
+    movimentos.innerHTML += `
+      <tr>
+        <td>${m.tipo}</td>
+        <td>${m.desc}</td>
+        <td>R$ ${m.valor}</td>
+        <td>${m.por}</td>
+      </tr>`;
+  });
+}
 </script>
+
 </body>
 </html>
