@@ -87,6 +87,22 @@ button {
 <button onclick="copiarMensagem()">Copiar mensagem de cobrança</button>
 </div>
 
+  <div class="card">
+<h3>👤 Cadastro de Alunos</h3>
+
+<input id="nomeAluno" placeholder="Nome do aluno">
+<input type="date" id="vencimentoAluno">
+
+<button onclick="addAluno()">Cadastrar Aluno</button>
+</div>
+
+<div class="card">
+<h3>⚠️ Alunos em Atraso</h3>
+<ul id="listaAtraso"></ul>
+
+<button onclick="copiarMensagem()">Copiar mensagem de cobrança</button>
+</div>
+
 <div class="resumo">
 <h3>📊 Resumo do Caixa</h3>
 <p class="valor">Entradas: R$ <span id="totalEntradas">0</span></p>
