@@ -2,40 +2,33 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Sistema Caixa Academia</title>
+<title>Caixa Academia</title>
 
 <style>
-:root {
-  --verde:#00e676;
-  --vermelho:#ff5252;
-  --card:#1c1c1c;
-  --bg:#0f0f0f;
-}
 body {
   margin:0;
   font-family:Arial;
-  background:var(--bg);
+  background:#0f0f0f;
   color:#fff;
 }
 header {
   background:#000;
   padding:15px;
   text-align:center;
-  border-bottom:2px solid var(--verde);
+  border-bottom:2px solid #00e676;
 }
 .container {
   max-width:1200px;
   margin:auto;
   padding:20px;
 }
-h2 { color:var(--verde); }
 .card {
-  background:var(--card);
+  background:#1c1c1c;
   padding:15px;
   border-radius:10px;
   margin-bottom:20px;
 }
-input, select {
+input {
   width:100%;
   padding:10px;
   margin-top:8px;
@@ -50,7 +43,7 @@ button {
   border-radius:6px;
   font-weight:bold;
   cursor:pointer;
-  background:var(--verde);
+  background:#00e676;
 }
 table {
   width:100%;
@@ -60,20 +53,19 @@ th,td {
   padding:8px;
   text-align:center;
 }
-.status-ok { color:var(--verde); }
-.status-atraso { color:var(--vermelho); }
+.status-ok { color:#00e676; }
+.status-atraso { color:#ff5252; }
 </style>
 </head>
 
 <body>
 
 <header>
-<h1>💪 Caixa Academia</h1>
+<h1>💪 Sistema Caixa Academia</h1>
 </header>
 
 <div class="container">
 
-<!-- CAIXA -->
 <div class="card">
 <h2>📊 Caixa</h2>
 <p>Entradas: R$ <span id="entradas">0</span></p>
@@ -82,34 +74,16 @@ th,td {
 <p><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
 </div>
 
-<!-- ENTRADA MANUAL -->
-<div class="card">
-<h2>➕ Entrada Manual</h2>
-<input id="descEntrada" placeholder="Descrição (ex: diária, produto)">
-<input id="valorEntrada" type="number" placeholder="Valor (R$)">
-<button onclick="entradaManual()">Adicionar Entrada</button>
-</div>
-
-<!-- SAÍDA -->
-<div class="card">
-<h2>➖ Saída</h2>
-<input id="descSaida" placeholder="Descrição da despesa">
-<input id="valorSaida" type="number" placeholder="Valor (R$)">
-<button onclick="saida()">Adicionar Saída</button>
-</div>
-
-<!-- CADASTRO ALUNO -->
 <div class="card">
 <h2>👤 Cadastrar Aluno</h2>
-<input id="nomeAluno" placeholder="Nome">
-<input id="mensalidade" type="number" placeholder="Mensalidade">
-<input id="vencimento" type="date">
+<input id="nomeAluno" placeholder="Nome do aluno">
+<input id="mensalidadeAluno" type="number" placeholder="Mensalidade">
+<input id="vencimentoAluno" type="date">
 <button onclick="cadastrarAluno()">Cadastrar</button>
 </div>
 
-<!-- LISTA -->
 <div class="card">
-<h2>📋 Alunos</h2>
+<h2>📋 Lista de Alunos</h2>
 <table>
 <thead>
 <tr>
@@ -120,7 +94,7 @@ th,td {
 <th>Ação</th>
 </tr>
 </thead>
-<tbody id="lista"></tbody>
+<tbody id="listaAlunos"></tbody>
 </table>
 </div>
 
@@ -131,66 +105,61 @@ let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
 let entradas = Number(localStorage.getItem("entradas")) || 0;
 let saidas = Number(localStorage.getItem("saidas")) || 0;
 
-atualizar();
+const entradasSpan = document.getElementById("entradas");
+const saidasSpan = document.getElementById("saidas");
+const saldoSpan = document.getElementById("saldo");
+const lista = document.getElementById("listaAlunos");
 
-/* ===== CAIXA ===== */
-function entradaManual() {
-  const valor = Number(valorEntrada.value);
-  if (valor <= 0) return;
-  entradas += valor;
-  salvar();
-  atualizar();
-  valorEntrada.value = "";
-}
+atualizarTela();
 
-function saida() {
-  const valor = Number(valorSaida.value);
-  if (valor <= 0) return;
-  saidas += valor;
-  salvar();
-  atualizar();
-  valorSaida.value = "";
-}
-
-/* ===== ALUNOS ===== */
 function cadastrarAluno() {
-  if (!nomeAluno.value || !mensalidade.value || !vencimento.value) return;
-  alunos.push({
-    nome: nomeAluno.value,
-    mensalidade: Number(mensalidade.value),
-    vencimento: vencimento.value
-  });
+  const nome = document.getElementById("nomeAluno").value;
+  const mensalidade = Number(document.getElementById("mensalidadeAluno").value);
+  const vencimento = document.getElementById("vencimentoAluno").value;
+
+  if (!nome || !mensalidade || !vencimento) {
+    alert("Preencha todos os campos");
+    return;
+  }
+
+  alunos.push({ nome, mensalidade, vencimento });
   salvar();
-  atualizar();
-  nomeAluno.value = mensalidade.value = vencimento.value = "";
+  atualizarTela();
+
+  document.getElementById("nomeAluno").value = "";
+  document.getElementById("mensalidadeAluno").value = "";
+  document.getElementById("vencimentoAluno").value = "";
 }
 
-function receber(i) {
-  entradas += alunos[i].mensalidade;
-  const data = new Date(alunos[i].vencimento);
-  data.setDate(data.getDate() + 30);
-  alunos[i].vencimento = data.toISOString().split("T")[0];
+function receber(index) {
+  entradas += alunos[index].mensalidade;
+
+  const novaData = new Date(alunos[index].vencimento);
+  novaData.setDate(novaData.getDate() + 30);
+  alunos[index].vencimento = novaData.toISOString().split("T")[0];
+
   salvar();
-  atualizar();
+  atualizarTela();
 }
 
-/* ===== ATUALIZAR ===== */
-function atualizar() {
+function atualizarTela() {
   const hoje = new Date().toISOString().split("T")[0];
   lista.innerHTML = "";
 
   alunos.forEach((a,i)=>{
     const atraso = a.vencimento < hoje;
     lista.innerHTML += `
-    <tr>
-      <td>${a.nome}</td>
-      <td>R$ ${a.mensalidade.toFixed(2)}</td>
-      <td>${a.vencimento}</td>
-      <td class="${atraso?'status-atraso':'status-ok'}">
-        ${atraso?'Atraso':'Em dia'}
-      </td>
-      <td><button onclick="receber(${i})">Receber</button></td>
-    </tr>`;
+      <tr>
+        <td>${a.nome}</td>
+        <td>R$ ${a.mensalidade.toFixed(2)}</td>
+        <td>${a.vencimento}</td>
+        <td class="${atraso?'status-atraso':'status-ok'}">
+          ${atraso?'Em atraso':'Em dia'}
+        </td>
+        <td>
+          <button onclick="receber(${i})">Receber</button>
+        </td>
+      </tr>`;
   });
 
   entradasSpan.innerText = entradas.toFixed(2);
@@ -203,10 +172,6 @@ function salvar() {
   localStorage.setItem("entradas", entradas);
   localStorage.setItem("saidas", saidas);
 }
-
-const entradasSpan = document.getElementById("entradas");
-const saidasSpan = document.getElementById("saidas");
-const saldoSpan = document.getElementById("saldo");
 </script>
 
 </body>
