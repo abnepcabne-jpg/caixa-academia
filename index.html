@@ -1,351 +1,67 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Caixa Academia</title>
+  <meta charset="UTF-8">
+  <title>Caixa Academia - Login</title>
   <style>
-    body { margin:0; font-family: Arial, sans-serif; background:#111; color:#fff; }
-    header { padding:16px; background:#000; text-align:center; font-size:20px; font-weight:bold; }
-    .container { padding:16px; }
-    .card { background:#1c1c1c; padding:16px; border-radius:10px; margin-bottom:16px; }
-    .card h2 { margin-top:0; }
-    button { padding:10px; width:100%; border:none; border-radius:8px; background:#2ecc71; color:#000; font-size:16px; font-weight:bold; }
-    input, select { width:100%; padding:10px; margin:6px 0; border-radius:6px; border:none; }
+    body {
+      background: #111;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #fff;
+    }
+    .login-box {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 10px;
+      width: 300px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+      background: #00c853;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #00e676;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div id="loginArea">
-      <input id="email" placeholder="Email" />
-      <input id="senha" type="password" placeholder="Senha" />
-      <button onclick="login()">Entrar</button>
-    </div>
-    <div id="app" style="display:none;">🏋️ Caixa da Academia</div></header>
-  <div class="container">
 
-    <div id="popupAtrasos" style="position:fixed;top:20px;right:20px;max-width:320px;z-index:9999;display:none;">
-    <div class="card" style="border:2px solid #e74c3c;">
-      <h2>⚠️ Alunos em Atraso</h2>
-      <ul id="listaAtrasados"></ul>
-    </div>
+<div class="login-box">
+  <h2>Caixa da Academia</h2>
+  <input type="password" id="senha" placeholder="Digite a senha">
+  <button onclick="login()">Entrar</button>
+</div>
 
-    <div class="card">
-      <h2>📊 Dashboard</h2>
-      <p id="totalEntradas">Entradas: R$ 0</p>
-      <p id="totalSaidas">Saídas: R$ 0</p>
-      <p id="saldo">Saldo: R$ 0</p>
-      <canvas id="graficoFinanceiro" height="200"></canvas>
-    </div>
-
-    <div class="card">
-      <h2>👤 Cadastro de Alunos</h2>
-      <input id="nomeAluno" placeholder="Nome do aluno" />
-      <input id="telefoneAluno" placeholder="Telefone (WhatsApp)" />
-      <select id="statusAluno">
-        <option value="Ativo">Ativo</option>
-        <option value="Atrasado">Atrasado</option>
-        <option value="Cancelado">Cancelado</option>
-      </select>
-      <button onclick="salvarAluno()">Salvar Aluno</button>
-    </div>
-
-    <div class="card">
-      <h2>📥 Registrar Entrada</h2>
-      <input placeholder="Aluno" />
-      <input type="number" placeholder="Valor" />
-      <select>
-        <option>Pix</option>
-        <option>Dinheiro</option>
-        <option>Crédito</option>
-        <option>Débito</option>
-      </select>
-      <button>Salvar Entrada</button>
-    </div>
-
-    <div class="card">
-      <h2>📤 Registrar Saída</h2>
-      <select id="categoria">
-        <option>Funcionário</option>
-        <option>Limpeza</option>
-        <option>Aluguel</option>
-        <option>Equipamento</option>
-        <option>Outros</option>
-      </select>
-      <input id="descricao" placeholder="Descrição" />
-      <input id="valorSaida" type="number" placeholder="Valor" />
-      <button onclick="salvarSaida()">Salvar Saída</button>
-    </div>
-
-    <div class="card">
-      <h2>📄 Histórico de Entradas</h2>
-      <input type="month" id="filtroMes" onchange="carregarHistorico()" />
-      <ul id="listaEntradas"></ul>
-    </div>
-
-    <div class="card">
-      <h2>📄 Histórico de Saídas</h2>
-      <button onclick="exportarCSV()">📥 Exportar Relatório (Excel)</button>
-      <ul id="listaSaidas"></ul>
-    </div>
-    <button onclick="fecharPopup()" style="margin-top:10px;background:#e74c3c;color:#fff;">Fechar</button>
-  </div>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">    function carregarDashboard() {
-      let entradas = 0;
-      let saidas = 0;
-
-      db.collection('entradas').get().then(snapshot => {
-        snapshot.forEach(doc => entradas += doc.data().valor);
-        document.getElementById('totalEntradas').innerText = `Entradas: R$ ${entradas}`;
-        atualizarSaldo(entradas, saidas);
-      });
-
-      db.collection('saidas').get().then(snapshot => {
-        snapshot.forEach(doc => saidas += doc.data().valor);
-        document.getElementById('totalSaidas').innerText = `Saídas: R$ ${saidas}`;
-        atualizarSaldo(entradas, saidas);
-      });
+<script>
+  function login() {
+    const senha = document.getElementById("senha").value;
+    if (senha === "academia123") {
+      window.location.href = "sistema.html";
+    } else {
+      alert("Senha incorreta");
     }
+  }
+</script>
 
-    let chart;
-
-    function atualizarSaldo(entradas, saidas) {
-      document.getElementById('saldo').innerText = `Saldo: R$ ${entradas - saidas}`;
-
-      const ctx = document.getElementById('graficoFinanceiro');
-      if (chart) chart.destroy();
-      chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Entradas', 'Saídas'],
-          datasets: [{
-            data: [entradas, saidas]
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { display: false } }
-        }
-      });
-    }
-
-    window.onload = () => { carregarDashboard(); carregarHistorico(); carregarAtrasados(); };
-      function fecharPopup(){ document.getElementById('popupAtrasos').style.display='none'; }
-
-    function carregarAtrasados() {
-      const popup = document.getElementById('popupAtrasos');
-      const lista = document.getElementById('listaAtrasados');
-      lista.innerHTML = '';
-
-      const hoje = new Date();
-      const limite = new Date();
-      limite.setDate(hoje.getDate() - 30);
-
-      db.collection('alunos').get().then(alunosSnap => {
-        const alunos = {};
-        alunosSnap.forEach(doc => alunos[doc.id] = doc.data());
-
-        db.collection('entradas').orderBy('data', 'desc').get().then(snapshot => {
-          const ultimoPagamento = {};
-
-          snapshot.forEach(doc => {
-            const d = doc.data();
-            if (!ultimoPagamento[d.aluno]) ultimoPagamento[d.aluno] = d.data;
-          });
-
-          Object.keys(alunos).forEach(id => {
-            const aluno = alunos[id];
-            const ultima = ultimoPagamento[aluno.nome];
-            if (!ultima || ultima.toDate() < limite) {
-              popup.style.display = 'block';
-              const msg = `Olá ${aluno.nome}, identificamos atraso no pagamento da sua mensalidade. Caso não seja regularizado, sua matrícula poderá ser cancelada.`;
-              const link = `https://wa.me/55${aluno.telefone}?text=${encodeURIComponent(msg)}`;
-              lista.innerHTML += `<li>${aluno.nome} (${aluno.status || 'Atrasado'}) <a href="${link}" target="_blank">📲 Msg</a> <button onclick="atualizarStatus('${id}','Cancelado')">Cancelar</button></li>`;
-            }
-          });
-        });
-      });
-    }
-
-    function atualizarStatus(id, status){ db.collection('alunos').doc(id).update({status}); }() {
-      const lista = document.getElementById('listaAtrasados');
-      lista.innerHTML = '';
-
-      const hoje = new Date();
-      const limite = new Date();
-      limite.setDate(hoje.getDate() - 30); // 30 dias sem pagamento
-
-      db.collection('entradas').orderBy('data', 'desc').get().then(snapshot => {
-        const ultimoPagamento = {};
-
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          if (!ultimoPagamento[d.aluno]) {
-            ultimoPagamento[d.aluno] = d.data;
-          }
-        });
-
-        Object.keys(ultimoPagamento).forEach(aluno => {
-          if (ultimoPagamento[aluno].toDate() < limite) {
-            const msg = `Olá ${aluno}, identificamos atraso no pagamento da sua mensalidade. Caso não seja regularizado, sua matrícula poderá ser cancelada.`;
-            const link = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-            lista.innerHTML += `<li>${aluno} <a href="${link}" target="_blank">📲 Enviar mensagem</a></li>`;
-          }
-        });
-      });
-    }
-
-    function carregarHistorico() {
-      const listaEntradas = document.getElementById('listaEntradas');
-      const listaSaidas = document.getElementById('listaSaidas');
-      const filtroMes = document.getElementById('filtroMes').value;
-      listaEntradas.innerHTML = '';
-      listaSaidas.innerHTML = '';
-
-      let inicioMes = null;
-      let fimMes = null;
-
-      if (filtroMes) {
-        const [ano, mes] = filtroMes.split('-');
-        inicioMes = new Date(ano, mes - 1, 1);
-        fimMes = new Date(ano, mes, 0, 23, 59, 59);
-      }
-
-      let queryEntradas = db.collection('entradas');
-      let querySaidas = db.collection('saidas');
-
-      if (inicioMes && fimMes) {
-        queryEntradas = queryEntradas.where('data', '>=', inicioMes).where('data', '<=', fimMes);
-        querySaidas = querySaidas.where('data', '>=', inicioMes).where('data', '<=', fimMes);
-      }
-
-      queryEntradas.orderBy('data', 'desc').get().then(snapshot => {
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          listaEntradas.innerHTML += `<li>${d.aluno} - R$ ${d.valor}</li>`;
-        });
-      });
-
-      querySaidas.orderBy('data', 'desc').get().then(snapshot => {
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          listaSaidas.innerHTML += `<li>${d.categoria} - R$ ${d.valor}</li>`;
-        });
-      });
-    } - R$ ${d.valor}</li>`;
-        });
-      });
-
-      db.collection('saidas').orderBy('data', 'desc').get().then(snapshot => {
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          listaSaidas.innerHTML += `<li>${d.categoria} - R$ ${d.valor}</li>`;
-        });
-      });
-    }
-      function exportarCSV() {
-      let csv = 'Tipo,Descricao,Valor,Data
-';
-
-      Promise.all([
-        db.collection('entradas').get(),
-        db.collection('saidas').get()
-      ]).then(([entradasSnap, saidasSnap]) => {
-        entradasSnap.forEach(doc => {
-          const d = doc.data();
-          csv += `Entrada,${d.aluno},${d.valor},${d.data.toDate().toLocaleDateString()}
-`;
-        });
-
-        saidasSnap.forEach(doc => {
-          const d = doc.data();
-          csv += `Saida,${d.categoria},${d.valor},${d.data.toDate().toLocaleDateString()}
-`;
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'relatorio_academia.csv';
-        link.click();
-      });
-    }
-  </script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // CONFIGURAÇÃO FIREBASE (SUBSTITUA PELOS SEUS DADOS)
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_DOMINIO.firebaseapp.com",
-      projectId: "SEU_PROJECT_ID",
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    function salvarAluno(){
-      const nome = document.getElementById('nomeAluno').value;
-      const telefone = document.getElementById('telefoneAluno').value;
-      const status = document.getElementById('statusAluno').value;
-      if(!nome || !telefone) return alert('Preencha nome e telefone');
-      db.collection('alunos').add({ nome, telefone, status });
-      alert('Aluno cadastrado');
-    }
-
-    function login() {
-      const email = document.getElementById('email').value;
-      const senha = document.getElementById('senha').value;
-      auth.signInWithEmailAndPassword(email, senha)
-        .then(() => {
-          document.getElementById('loginArea').style.display = 'none';
-          document.getElementById('app').style.display = 'block';
-          carregarDashboard();
-          carregarHistorico();
-        })
-        .catch(() => alert('Login inválido'));
-    }
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById('loginArea').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-      }
-    });
-
-    function salvarEntrada() {
-      const aluno = document.getElementById('aluno').value;
-      const valor = document.getElementById('valorEntrada').value;
-      const metodo = document.getElementById('metodoEntrada').value;
-
-      db.collection('entradas').add({
-        aluno,
-        valor: Number(valor),
-        metodo,
-        data: new Date()
-      });
-
-      alert('Entrada salva com sucesso');
-      carregarDashboard();
-    }
-
-    function salvarSaida() {
-      const categoria = document.getElementById('categoria').value;
-      const descricao = document.getElementById('descricao').value;
-      const valor = document.getElementById('valorSaida').value;
-
-      db.collection('saidas').add({
-        categoria,
-        descricao,
-        valor: Number(valor),
-        data: new Date()
-      });
-
-      alert('Saída salva com sucesso');
-      carregarDashboard();
-    }
-  </script>
 </body>
 </html>
