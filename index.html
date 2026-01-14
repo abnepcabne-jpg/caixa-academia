@@ -28,10 +28,8 @@ header {
   border-radius:10px;
   margin-bottom:20px;
 }
-h2 {
-  color:#00e676;
-}
-input, select {
+h2 { color:#00e676; }
+input {
   width:100%;
   padding:10px;
   margin-top:8px;
@@ -59,7 +57,6 @@ th, td {
 }
 .status-ok { color:#00e676; }
 .status-atraso { color:#ff5252; }
-hr { border:1px solid #333; }
 </style>
 </head>
 
@@ -71,7 +68,6 @@ hr { border:1px solid #333; }
 
 <div class="container">
 
-<!-- CAIXA -->
 <div class="card">
 <h2>📊 Caixa</h2>
 <p>Entradas: R$ <span id="entradas">0</span></p>
@@ -80,38 +76,34 @@ hr { border:1px solid #333; }
 <p><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
 </div>
 
-<!-- ENTRADA MANUAL -->
 <div class="card">
 <h2>➕ Entrada Manual (Diária / Produto)</h2>
-<input id="descEntrada" placeholder="Descrição (ex: diária, personal)">
+<input id="descEntrada" placeholder="Descrição">
 <input id="valorEntrada" type="number" placeholder="Valor (R$)">
 <button onclick="entradaManual()">Adicionar Entrada</button>
 </div>
 
-<!-- SAÍDA -->
 <div class="card">
 <h2>➖ Gastos / Despesas</h2>
-<input id="descSaida" placeholder="Descrição (ex: funcionário, limpeza)">
+<input id="descSaida" placeholder="Descrição do gasto">
 <input id="valorSaida" type="number" placeholder="Valor (R$)">
 <button onclick="saida()">Adicionar Gasto</button>
 </div>
 
-<!-- CADASTRO ALUNO -->
 <div class="card">
 <h2>👤 Cadastrar Aluno</h2>
 <input id="nomeAluno" placeholder="Nome do aluno">
-<input id="mensalidadeAluno" type="number" placeholder="Mensalidade (R$)">
+<input id="mensalidadeAluno" type="number" placeholder="Mensalidade">
 <input id="vencimentoAluno" type="date">
 <button onclick="cadastrarAluno()">Cadastrar Aluno</button>
 </div>
 
-<!-- LISTA DE ALUNOS -->
 <div class="card">
 <h2>📋 Lista de Alunos</h2>
 <table>
 <thead>
 <tr>
-<th>Aluno</th>
+<th>Nome</th>
 <th>Mensalidade</th>
 <th>Vencimento</th>
 <th>Status</th>
@@ -136,7 +128,6 @@ const lista = document.getElementById("listaAlunos");
 
 atualizarTela();
 
-/* ===== ENTRADAS MANUAIS ===== */
 function entradaManual() {
   const valor = Number(valorEntrada.value);
   if (valor <= 0) return;
@@ -147,7 +138,6 @@ function entradaManual() {
   descEntrada.value = "";
 }
 
-/* ===== SAÍDAS ===== */
 function saida() {
   const valor = Number(valorSaida.value);
   if (valor <= 0) return;
@@ -158,18 +148,18 @@ function saida() {
   descSaida.value = "";
 }
 
-/* ===== ALUNOS ===== */
 function cadastrarAluno() {
-  const nome = nomeAluno.value;
-  const mensalidade = Number(mensalidadeAluno.value);
-  const vencimento = vencimentoAluno.value;
-
-  if (!nome || !mensalidade || !vencimento) {
+  if (!nomeAluno.value || !mensalidadeAluno.value || !vencimentoAluno.value) {
     alert("Preencha todos os campos");
     return;
   }
 
-  alunos.push({ nome, mensalidade, vencimento });
+  alunos.push({
+    nome: nomeAluno.value,
+    mensalidade: Number(mensalidadeAluno.value),
+    vencimento: vencimentoAluno.value
+  });
+
   salvar();
   atualizarTela();
 
@@ -178,18 +168,17 @@ function cadastrarAluno() {
   vencimentoAluno.value = "";
 }
 
-function receber(index) {
-  entradas += alunos[index].mensalidade;
+function receber(i) {
+  entradas += alunos[i].mensalidade;
 
-  const novaData = new Date(alunos[index].vencimento);
-  novaData.setDate(novaData.getDate() + 30);
-  alunos[index].vencimento = novaData.toISOString().split("T")[0];
+  const data = new Date(alunos[i].vencimento);
+  data.setDate(data.getDate() + 30);
+  alunos[i].vencimento = data.toISOString().split("T")[0];
 
   salvar();
   atualizarTela();
 }
 
-/* ===== ATUALIZAÇÃO ===== */
 function atualizarTela() {
   const hoje = new Date().toISOString().split("T")[0];
   lista.innerHTML = "";
@@ -204,11 +193,8 @@ function atualizarTela() {
         <td class="${atraso?'status-atraso':'status-ok'}">
           ${atraso?'Em atraso':'Em dia'}
         </td>
-        <td>
-          <button onclick="receber(${i})">Receber</button>
-        </td>
-      </tr>
-    `;
+        <td><button onclick="receber(${i})">Receber</button></td>
+      </tr>`;
   });
 
   entradasSpan.innerText = entradas.toFixed(2);
@@ -224,5 +210,4 @@ function salvar() {
 </script>
 
 </body>
-  <h1 style="color:red">VERSÃO NOVA DO SISTEMA</h1>
 </html>
