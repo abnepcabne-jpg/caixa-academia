@@ -49,60 +49,46 @@ button {
 
 <h1>Caixa da Academia</h1>
 
+<!-- ENTRADA -->
 <div class="card">
 <h3>Entrada - Aluno</h3>
-<input id="aluno" placeholder="Nome do aluno">
-<input type="date" id="dataEntrada">
-<select id="metodo">
+<input placeholder="Nome do aluno">
+<input type="date">
+<select>
   <option>Pix</option>
   <option>Dinheiro</option>
   <option>Cartão</option>
 </select>
-<input id="recebidoPor" placeholder="Responsável que recebeu">
-<input id="valorEntrada" placeholder="Valor recebido (R$)" type="number">
+<input placeholder="Responsável que recebeu">
+<input id="valorEntrada" type="number" placeholder="Valor recebido (R$)">
 <button onclick="addEntrada()">Salvar Entrada</button>
 </div>
 
+<!-- SAÍDA -->
 <div class="card">
 <h3>Saída - Despesas</h3>
-<input id="descricaoSaida" placeholder="Descrição da despesa">
-<input type="date" id="dataSaida">
-<input id="valorSaida" placeholder="Valor pago (R$)" type="number">
+<input placeholder="Descrição da despesa">
+<input type="date">
+<input id="valorSaida" type="number" placeholder="Valor pago (R$)">
 <button onclick="addSaida()">Salvar Saída</button>
 </div>
 
-  <div class="card">
+<!-- CADASTRO DE ALUNOS -->
+<div class="card">
 <h3>👤 Cadastro de Alunos</h3>
-
 <input id="nomeAluno" placeholder="Nome do aluno">
 <input type="date" id="vencimentoAluno">
-
 <button onclick="addAluno()">Cadastrar Aluno</button>
 </div>
 
+<!-- ALUNOS EM ATRASO -->
 <div class="card">
 <h3>⚠️ Alunos em Atraso</h3>
 <ul id="listaAtraso"></ul>
-
 <button onclick="copiarMensagem()">Copiar mensagem de cobrança</button>
 </div>
 
-  <div class="card">
-<h3>👤 Cadastro de Alunos</h3>
-
-<input id="nomeAluno" placeholder="Nome do aluno">
-<input type="date" id="vencimentoAluno">
-
-<button onclick="addAluno()">Cadastrar Aluno</button>
-</div>
-
-<div class="card">
-<h3>⚠️ Alunos em Atraso</h3>
-<ul id="listaAtraso"></ul>
-
-<button onclick="copiarMensagem()">Copiar mensagem de cobrança</button>
-</div>
-
+<!-- RESUMO -->
 <div class="resumo">
 <h3>📊 Resumo do Caixa</h3>
 <p class="valor">Entradas: R$ <span id="totalEntradas">0</span></p>
@@ -111,45 +97,6 @@ button {
 <p class="valor"><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
 </div>
 
-<script>
-let totalEntradas = Number(localStorage.getItem("totalEntradas")) || 0;
-let totalSaidas = Number(localStorage.getItem("totalSaidas")) || 0;
-
-atualizarResumo();
-
-function addEntrada() {
-  const valor = Number(document.getElementById("valorEntrada").value);
-  if (valor > 0) {
-    totalEntradas += valor;
-    salvar();
-    atualizarResumo();
-    alert("Entrada registrada!");
-    document.getElementById("valorEntrada").value = "";
-  }
-}
-
-function addSaida() {
-  const valor = Number(document.getElementById("valorSaida").value);
-  if (valor > 0) {
-    totalSaidas += valor;
-    salvar();
-    atualizarResumo();
-    alert("Saída registrada!");
-    document.getElementById("valorSaida").value = "";
-  }
-}
-
-function salvar() {
-  localStorage.setItem("totalEntradas", totalEntradas);
-  localStorage.setItem("totalSaidas", totalSaidas);
-}
-
-function atualizarResumo() {
-  document.getElementById("totalEntradas").innerText = totalEntradas.toFixed(2);
-  document.getElementById("totalSaidas").innerText = totalSaidas.toFixed(2);
-  document.getElementById("saldo").innerText =
-    (totalEntradas - totalSaidas).toFixed(2);
-}
 <script>
 // ===== CAIXA =====
 let totalEntradas = Number(localStorage.getItem("totalEntradas")) || 0;
@@ -161,84 +108,77 @@ let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
 atualizarResumo();
 verificarAtrasos();
 
-// ===== FUNÇÕES CAIXA =====
 function addEntrada() {
-  const valor = Number(document.getElementById("valorEntrada").value);
+  const valor = Number(valorEntrada.value);
   if (valor > 0) {
     totalEntradas += valor;
-    salvarCaixa();
+    salvar();
     atualizarResumo();
-    alert("Entrada registrada!");
+    valorEntrada.value = "";
   }
 }
 
 function addSaida() {
-  const valor = Number(document.getElementById("valorSaida").value);
+  const valor = Number(valorSaida.value);
   if (valor > 0) {
     totalSaidas += valor;
-    salvarCaixa();
+    salvar();
     atualizarResumo();
-    alert("Saída registrada!");
+    valorSaida.value = "";
   }
-}
-
-function salvarCaixa() {
-  localStorage.setItem("totalEntradas", totalEntradas);
-  localStorage.setItem("totalSaidas", totalSaidas);
 }
 
 function atualizarResumo() {
-  document.getElementById("totalEntradas").innerText = totalEntradas.toFixed(2);
-  document.getElementById("totalSaidas").innerText = totalSaidas.toFixed(2);
-  document.getElementById("saldo").innerText =
-    (totalEntradas - totalSaidas).toFixed(2);
+  totalEntradasSpan.innerText = totalEntradas.toFixed(2);
+  totalSaidasSpan.innerText = totalSaidas.toFixed(2);
+  saldoSpan.innerText = (totalEntradas - totalSaidas).toFixed(2);
 }
 
-// ===== FUNÇÕES ALUNOS =====
-function addAluno() {
-  const nome = document.getElementById("nomeAluno").value;
-  const vencimento = document.getElementById("vencimentoAluno").value;
+function salvar() {
+  localStorage.setItem("totalEntradas", totalEntradas);
+  localStorage.setItem("totalSaidas", totalSaidas);
+  localStorage.setItem("alunos", JSON.stringify(alunos));
+}
 
-  if (!nome || !vencimento) {
-    alert("Preencha nome e vencimento");
+// ===== ALUNOS =====
+function addAluno() {
+  if (!nomeAluno.value || !vencimentoAluno.value) {
+    alert("Preencha todos os campos");
     return;
   }
-
-  alunos.push({ nome, vencimento });
-  localStorage.setItem("alunos", JSON.stringify(alunos));
-
-  document.getElementById("nomeAluno").value = "";
-  document.getElementById("vencimentoAluno").value = "";
-
+  alunos.push({
+    nome: nomeAluno.value,
+    vencimento: vencimentoAluno.value
+  });
+  salvar();
   verificarAtrasos();
-  alert("Aluno cadastrado!");
+  nomeAluno.value = "";
+  vencimentoAluno.value = "";
 }
 
 function verificarAtrasos() {
+  listaAtraso.innerHTML = "";
   const hoje = new Date().toISOString().split("T")[0];
-  const lista = document.getElementById("listaAtraso");
-  lista.innerHTML = "";
 
-  const atrasados = alunos.filter(a => a.vencimento < hoje);
-
-  atrasados.forEach(a => {
+  alunos.filter(a => a.vencimento < hoje).forEach(a => {
     const li = document.createElement("li");
     li.innerText = `${a.nome} - vencido em ${a.vencimento}`;
-    lista.appendChild(li);
+    listaAtraso.appendChild(li);
   });
-
-  if (atrasados.length > 0) {
-    alert(`⚠️ ${atrasados.length} aluno(s) com pagamento em atraso`);
-  }
 }
 
 function copiarMensagem() {
-  const texto =
-    "Olá, identificamos que seu pagamento está em atraso. " +
-    "Pedimos que regularize o quanto antes para evitar o cancelamento da matrícula. Obrigado.";
-
-  navigator.clipboard.writeText(texto);
-  alert("Mensagem copiada! Cole no WhatsApp.");
+  navigator.clipboard.writeText(
+    "Olá, seu pagamento está em atraso. Por favor regularize para evitar o cancelamento da matrícula."
+  );
+  alert("Mensagem copiada!");
 }
+
+// atalhos
+const totalEntradasSpan = document.getElementById("totalEntradas");
+const totalSaidasSpan = document.getElementById("totalSaidas");
+const saldoSpan = document.getElementById("saldo");
 </script>
 
+</body>
+</html>
