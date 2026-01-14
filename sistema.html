@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Caixa Academia</title>
+
 <style>
 body {
   font-family: Arial;
@@ -31,6 +32,15 @@ button {
   border: none;
   font-weight: bold;
   cursor: pointer;
+  width: 100%;
+}
+.resumo {
+  background: #000;
+  padding: 15px;
+  border-radius: 8px;
+}
+.valor {
+  font-size: 18px;
 }
 </style>
 </head>
@@ -41,30 +51,62 @@ button {
 
 <div class="card">
 <h3>Entrada - Aluno</h3>
-<input placeholder="Nome do aluno">
-<input type="date">
-<select>
+<input id="aluno" placeholder="Nome do aluno">
+<input type="date" id="dataEntrada">
+<select id="metodo">
   <option>Pix</option>
   <option>Dinheiro</option>
   <option>Cartão</option>
 </select>
-<input placeholder="Responsável que recebeu">
-<button>Salvar Entrada</button>
+<input id="recebidoPor" placeholder="Responsável que recebeu">
+<input id="valorEntrada" placeholder="Valor recebido (R$)" type="number">
+<button onclick="addEntrada()">Salvar Entrada</button>
 </div>
 
 <div class="card">
 <h3>Saída - Despesas</h3>
-<input placeholder="Descrição da despesa">
-<input type="date">
-<input placeholder="Valor">
-<button>Salvar Saída</button>
+<input id="descricaoSaida" placeholder="Descrição da despesa">
+<input type="date" id="dataSaida">
+<input id="valorSaida" placeholder="Valor pago (R$)" type="number">
+<button onclick="addSaida()">Salvar Saída</button>
 </div>
 
-<div class="card">
-<h3>⚠️ Alunos em atraso</h3>
-<p>Nenhum aluno em atraso</p>
-<button onclick="alert('Mensagem copiada!')">Copiar mensagem de cobrança</button>
+<div class="resumo">
+<h3>📊 Resumo do Caixa</h3>
+<p class="valor">Entradas: R$ <span id="totalEntradas">0</span></p>
+<p class="valor">Saídas: R$ <span id="totalSaidas">0</span></p>
+<hr>
+<p class="valor"><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
 </div>
+
+<script>
+let totalEntradas = 0;
+let totalSaidas = 0;
+
+function addEntrada() {
+  const valor = Number(document.getElementById("valorEntrada").value);
+  if (valor > 0) {
+    totalEntradas += valor;
+    atualizarResumo();
+    alert("Entrada registrada!");
+  }
+}
+
+function addSaida() {
+  const valor = Number(document.getElementById("valorSaida").value);
+  if (valor > 0) {
+    totalSaidas += valor;
+    atualizarResumo();
+    alert("Saída registrada!");
+  }
+}
+
+function atualizarResumo() {
+  document.getElementById("totalEntradas").innerText = totalEntradas.toFixed(2);
+  document.getElementById("totalSaidas").innerText = totalSaidas.toFixed(2);
+  document.getElementById("saldo").innerText = (totalEntradas - totalSaidas).toFixed(2);
+}
+</script>
 
 </body>
 </html>
