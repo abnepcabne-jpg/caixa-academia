@@ -28,7 +28,7 @@ ul{padding-left:20px}
     <img src="logo.png" style="width:120px;display:block;margin:0 auto 15px"><h3 style="text-align:center">Login do Sistema</h3>
     <input id="user" placeholder="Usuário">
     <input id="pass" type="password" placeholder="Senha">
-    <button class="action" onclick="logar()">Entrar</button>
+    <button type="button" class="action" onclick="logar()">Entrar</button>
   </div>
 </div>
 
@@ -91,7 +91,28 @@ ul{padding-left:20px}
 <script>
 // LOGIN
 const USERS=[{user:'admin',pass:'1234',role:'admin'},{user:'funcionario',pass:'123',role:'funcionario'}];let usuarioLogado=null;
-function logar(){const u=user.value,p=pass.value;const encontrado=USERS.find(x=>x.user===u&&x.pass===p);if(encontrado){usuarioLogado=encontrado;login.style.display='none';sistema.style.display='block';if(encontrado.role==='funcionario'){document.querySelector("button[onclick=\"gerarPDF()\"]").style.display='none';document.querySelector("button[onclick=\"fecharCaixa()\"]").style.display='none';}}else alert('Login inválido')}(){if(user.value===USER && pass.value===PASS){login.style.display='none';sistema.style.display='block';}else alert('Login inválido')}
+function logar() {
+  const u = document.getElementById("user").value;
+  const p = document.getElementById("pass").value;
+
+  const encontrado = USERS.find(
+    x => x.user === u && x.pass === p
+  );
+
+  if (encontrado) {
+    usuarioLogado = encontrado;
+    document.getElementById("login").style.display = "none";
+    document.getElementById("sistema").style.display = "block";
+
+    if (encontrado.role === "funcionario") {
+      document.querySelector("button[onclick=\"gerarPDF()\"]").style.display = "none";
+      document.querySelector("button[onclick=\"fecharCaixa()\"]").style.display = "none";
+    }
+  } else {
+    alert("Login inválido");
+  }
+}
+
 
 let entradas=JSON.parse(localStorage.getItem('entradas'))||[];
 let saidas=JSON.parse(localStorage.getItem('saidas'))||[];
