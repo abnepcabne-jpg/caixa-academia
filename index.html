@@ -11,7 +11,7 @@ header{background:#020617;padding:15px;display:flex;justify-content:space-betwee
 .container{max-width:1200px;margin:auto;padding:20px}
 .card{background:#020617;border-radius:10px;padding:20px;margin-bottom:20px}
 input,button{padding:10px;border-radius:6px;border:none}
-input{width:100%;margin-bottom:10px}
+input{width:100%;margin-bottom:10px;background:#1e293b;color:#e5e7eb}
 button{background:#2563eb;color:#fff;cursor:pointer}
 button.warn{background:#f59e0b}
 button.danger{background:#dc2626}
@@ -24,6 +24,7 @@ th,td{padding:10px;border-bottom:1px solid #1e293b;text-align:center}
 
 <body>
 
+<!-- LOGIN -->
 <div id="login" class="container">
   <div class="card" style="max-width:400px;margin:auto">
     <img src="logo.png" style="width:120px;display:block;margin:auto">
@@ -34,6 +35,7 @@ th,td{padding:10px;border-bottom:1px solid #1e293b;text-align:center}
   </div>
 </div>
 
+<!-- SISTEMA -->
 <div id="sistema" class="hidden">
 
 <header>
@@ -45,6 +47,7 @@ th,td{padding:10px;border-bottom:1px solid #1e293b;text-align:center}
 
 <div id="alertaAtraso" class="alerta hidden"></div>
 
+<!-- CADASTRO DE ALUNO -->
 <div class="card">
   <h3>Cadastrar Aluno</h3>
   <input id="nomeAluno" placeholder="Nome do aluno">
@@ -53,6 +56,7 @@ th,td{padding:10px;border-bottom:1px solid #1e293b;text-align:center}
   <button onclick="cadastrarAluno()">Cadastrar</button>
 </div>
 
+<!-- LISTA DE ALUNOS -->
 <div class="card">
   <h3>Lista de Alunos</h3>
   <table>
@@ -63,6 +67,7 @@ th,td{padding:10px;border-bottom:1px solid #1e293b;text-align:center}
   </table>
 </div>
 
+<!-- AÇÕES -->
 <div class="card">
   <button onclick="gerarPDF()">📄 Relatório Mensal (PDF)</button>
   <button class="danger" onclick="fecharCaixa()">🔒 Fechar Caixa</button>
@@ -84,136 +89,63 @@ let usuario = null;
 let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
 let caixaAberto = localStorage.getItem("caixa") !== "fechado";
 
-// LOGIN
-function login(){
- const username = document.getElementById("user").value;
- const password = document.getElementById("pass").value;
- const ok = users.find(u => u.user === username && u.pass === password);
- if(!ok) return alert("Login inválido");
- usuario = ok;
- document.getElementById("login").style.display = "none";
- document.getElementById("sistema").classList.remove("hidden");
- document.getElementById("infoUser").innerText = "Usuário: " + usuario.user;
- atualizar();
- verificarAtrasos();
+// --- LOGIN ---
+function login() {
+    const username = document.getElementById("user").value.trim();
+    const password = document.getElementById("pass").value.trim();
+
+    if(!username || !password) return alert("Preencha usuário e senha!");
+
+    const ok = users.find(u => u.user === username && u.pass === password);
+    if(!ok) return alert("Login inválido");
+
+    usuario = ok;
+    document.getElementById("login").style.display = "none";
+    document.getElementById("sistema").classList.remove("hidden");
+    document.getElementById("infoUser").innerText = "Usuário: " + usuario.user;
+
+    atualizar();
+    verificarAtrasos();
 }
 
-function logout(){
- location.reload();
+// Logout
+function logout() {
+    location.reload();
 }
 
-// CADASTRO DE ALUNO
-function cadastrarAluno(){
- const nome = document.getElementById("nomeAluno").value.trim();
- const valor = Number(document.getElementById("valorAluno").value);
- const vencimento = Number(document.getElementById("vencimentoAluno").value);
+// --- CADASTRO DE ALUNO ---
+function cadastrarAluno() {
+    const nome = document.getElementById("nomeAluno").value.trim();
+    const valor = Number(document.getElementById("valorAluno").value);
+    const vencimento = Number(document.getElementById("vencimentoAluno").value);
 
- if(!nome || !valor || !vencimento) return alert("Preencha todos os campos corretamente!");
+    if(!nome || !valor || !vencimento) return alert("Preencha todos os campos corretamente!");
 
- alunos.push({
-  nome,
-  valor,
-  vencimento,
-  ultimoPagamento: null
- });
- salvar();
- document.getElementById("nomeAluno").value = "";
- document.getElementById("valorAluno").value = "";
- document.getElementById("vencimentoAluno").value = "";
- atualizar();
- verificarAtrasos();
+    alunos.push({ nome, valor, vencimento, ultimoPagamento: null });
+    salvar();
+
+    document.getElementById("nomeAluno").value = "";
+    document.getElementById("valorAluno").value = "";
+    document.getElementById("vencimentoAluno").value = "";
+
+    atualizar();
+    verificarAtrasos();
 }
 
-// RECEBER PAGAMENTO
-function receber(i){
- if(!caixaAberto) return alert("Caixa fechado!");
- alunos[i].ultimoPagamento = new Date().toISOString();
- salvar();
- atualizar();
- verificarAtrasos();
+// --- PAGAMENTO ---
+function receber(i) {
+    if(!caixaAberto) return alert("Caixa fechado!");
+    alunos[i].ultimoPagamento = new Date().toISOString();
+    salvar();
+    atualizar();
+    verificarAtrasos();
 }
 
-// VERIFICAR ATRASOS
-function verificarAtrasos(){
- let hoje = new Date();
- let atrasados = [];
- alunos.forEach(a=>{
-  if(!a.ultimoPagamento) return;
-  let venc = new Date(hoje.getFullYear(), hoje.getMonth(), a.vencimento);
-  let ult = new Date(a.ultimoPagamento);
-  if(ult < venc && hoje > venc){
-   let dias = Math.floor((hoje - venc)/86400000);
-   atrasados.push({...a, dias});
-  }
- });
+// --- ATRASOS ---
+function verificarAtrasos() {
+    const hoje = new Date();
+    let atrasados = [];
 
- const alerta = document.getElementById("alertaAtraso");
- if(atrasados.length){
-  alerta.classList.remove("hidden");
-  alerta.innerHTML = "<strong>⚠️ Alunos em atraso:</strong><br>";
-  atrasados.forEach(a=>{
-   alerta.innerHTML += `${a.nome} - ${a.dias} dias 
-   <button class="warn" onclick="cobrar('${a.nome}')">Cobrar</button><br>`;
-  });
- } else alerta.classList.add("hidden");
-}
-
-// COBRANÇA VIA WHATSAPP
-function cobrar(nome){
- let msg = `Olá ${nome}, identificamos que sua mensalidade está em atraso. Por favor regularize para evitar o cancelamento da matrícula.`;
- window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
-}
-
-// GERAR PDF
-function gerarPDF(){
- const pdf = new jsPDF();
- let y = 10;
- pdf.text("Relatório Mensal - Academia", 10, y); y+=10;
- alunos.forEach(a=>{
-  pdf.text(`${a.nome} | R$ ${a.valor}`, 10, y);
-  y += 7;
- });
- pdf.save("relatorio_mensal.pdf");
-}
-
-// FECHAR CAIXA
-function fecharCaixa(){
- if(!confirm("Fechar caixa do dia?")) return;
- caixaAberto = false;
- localStorage.setItem("caixa","fechado");
- alert("Caixa fechado");
-}
-
-// ATUALIZAR LISTA DE ALUNOS
-function atualizar(){
- const lista = document.getElementById("listaAlunos");
- lista.innerHTML = "";
- let hoje = new Date();
-
- alunos.forEach((a,i)=>{
-  let status = "Em dia";
-  let venc = new Date(hoje.getFullYear(), hoje.getMonth(), a.vencimento);
-  if((!a.ultimoPagamento || new Date(a.ultimoPagamento) < venc) && hoje > venc){
-   status = "⚠️ Atrasado";
-  }
-
-  lista.innerHTML += `
-  <tr>
-   <td>${a.nome}</td>
-   <td>R$ ${a.valor.toFixed(2)}</td>
-   <td>${status}</td>
-   <td>
-    <button onclick="receber(${i})">Receber</button>
-    <button class="warn" onclick="cobrar('${a.nome}')">Cobrar</button>
-   </td>
-  </tr>`;
- });
-}
-
-// SALVAR NO LOCALSTORAGE
-function salvar(){
- localStorage.setItem("alunos", JSON.stringify(alunos));
-}
-</script>
-</body>
-</html>
+    alunos.forEach(a => {
+        const ult = a.ultimoPagamento ? new Date(a.ultimoPagamento) : null;
+        const venc = new Date(hoje.getFullYear(), h
