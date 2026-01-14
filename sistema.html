@@ -2,164 +2,126 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Caixa Academia</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<title>Sistema Caixa Academia</title>
 
 <style>
 :root {
-  --verde: #00e676;
-  --vermelho: #ff5252;
-  --azul: #2979ff;
-  --preto: #0f0f0f;
-  --card: #1c1c1c;
+  --verde:#00e676;
+  --vermelho:#ff5252;
+  --card:#1c1c1c;
+  --bg:#0f0f0f;
 }
-
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: var(--preto);
-  color: #fff;
+  margin:0;
+  font-family:Arial;
+  background:var(--bg);
+  color:#fff;
 }
-
 header {
-  background: #000;
-  padding: 15px;
-  text-align: center;
-  border-bottom: 2px solid var(--verde);
+  background:#000;
+  padding:15px;
+  text-align:center;
+  border-bottom:2px solid var(--verde);
 }
-
-header h1 {
-  margin: 0;
-  color: var(--verde);
-}
-
 .container {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
+  max-width:1200px;
+  margin:auto;
+  padding:20px;
 }
-
-.section-title {
-  color: var(--verde);
-  margin-top: 30px;
-  border-left: 4px solid var(--verde);
-  padding-left: 10px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
-  gap: 15px;
-}
-
+h2 { color:var(--verde); }
 .card {
-  background: var(--card);
-  padding: 15px;
-  border-radius: 10px;
+  background:var(--card);
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:20px;
 }
-
-input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border-radius: 6px;
-  border: none;
+input, select {
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border:none;
+  border-radius:6px;
 }
-
 button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border-radius: 6px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:6px;
+  font-weight:bold;
+  cursor:pointer;
+  background:var(--verde);
 }
-
-.btn {
-  background: var(--verde);
-}
-
-.btn-azul {
-  background: var(--azul);
-}
-
-.btn-vermelho {
-  background: var(--vermelho);
-}
-
 table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
+  width:100%;
+  border-collapse:collapse;
 }
-
-th, td {
-  padding: 8px;
-  text-align: center;
+th,td {
+  padding:8px;
+  text-align:center;
 }
-
-th {
-  background: #000;
-}
-
-.status-ok {
-  color: var(--verde);
-}
-
-.status-atraso {
-  color: var(--vermelho);
-}
+.status-ok { color:var(--verde); }
+.status-atraso { color:var(--vermelho); }
 </style>
 </head>
 
 <body>
 
 <header>
-  <h1>💪 Sistema Caixa Academia</h1>
+<h1>💪 Caixa Academia</h1>
 </header>
 
 <div class="container">
 
 <!-- CAIXA -->
-<h2 class="section-title">Caixa</h2>
-<div class="grid">
-  <div class="card">
-    <h3>Resumo</h3>
-    <p>Entradas: R$ <span id="entradas">0</span></p>
-    <p>Saídas: R$ <span id="saidas">0</span></p>
-    <hr>
-    <p><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
-  </div>
+<div class="card">
+<h2>📊 Caixa</h2>
+<p>Entradas: R$ <span id="entradas">0</span></p>
+<p>Saídas: R$ <span id="saidas">0</span></p>
+<hr>
+<p><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
 </div>
 
-<!-- CADASTRO -->
-<h2 class="section-title">Cadastrar Aluno</h2>
-<div class="grid">
-  <div class="card">
-    <input id="nome" placeholder="Nome do aluno">
-    <input id="mensalidade" type="number" placeholder="Valor da mensalidade">
-    <input id="vencimento" type="date">
-    <button class="btn" onclick="cadastrarAluno()">Cadastrar</button>
-  </div>
+<!-- ENTRADA MANUAL -->
+<div class="card">
+<h2>➕ Entrada Manual</h2>
+<input id="descEntrada" placeholder="Descrição (ex: diária, produto)">
+<input id="valorEntrada" type="number" placeholder="Valor (R$)">
+<button onclick="entradaManual()">Adicionar Entrada</button>
+</div>
+
+<!-- SAÍDA -->
+<div class="card">
+<h2>➖ Saída</h2>
+<input id="descSaida" placeholder="Descrição da despesa">
+<input id="valorSaida" type="number" placeholder="Valor (R$)">
+<button onclick="saida()">Adicionar Saída</button>
+</div>
+
+<!-- CADASTRO ALUNO -->
+<div class="card">
+<h2>👤 Cadastrar Aluno</h2>
+<input id="nomeAluno" placeholder="Nome">
+<input id="mensalidade" type="number" placeholder="Mensalidade">
+<input id="vencimento" type="date">
+<button onclick="cadastrarAluno()">Cadastrar</button>
 </div>
 
 <!-- LISTA -->
-<h2 class="section-title">Lista de Alunos</h2>
 <div class="card">
-  <table>
-    <thead>
-      <tr>
-        <th>Aluno</th>
-        <th>Mensalidade</th>
-        <th>Vencimento</th>
-        <th>Status</th>
-        <th>Ação</th>
-      </tr>
-    </thead>
-    <tbody id="lista"></tbody>
-  </table>
+<h2>📋 Alunos</h2>
+<table>
+<thead>
+<tr>
+<th>Nome</th>
+<th>Mensalidade</th>
+<th>Vencimento</th>
+<th>Status</th>
+<th>Ação</th>
+</tr>
+</thead>
+<tbody id="lista"></tbody>
+</table>
 </div>
 
 </div>
@@ -169,57 +131,66 @@ let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
 let entradas = Number(localStorage.getItem("entradas")) || 0;
 let saidas = Number(localStorage.getItem("saidas")) || 0;
 
-const hoje = new Date().toISOString().split("T")[0];
+atualizar();
 
-atualizarTela();
+/* ===== CAIXA ===== */
+function entradaManual() {
+  const valor = Number(valorEntrada.value);
+  if (valor <= 0) return;
+  entradas += valor;
+  salvar();
+  atualizar();
+  valorEntrada.value = "";
+}
+
+function saida() {
+  const valor = Number(valorSaida.value);
+  if (valor <= 0) return;
+  saidas += valor;
+  salvar();
+  atualizar();
+  valorSaida.value = "";
+}
 
 /* ===== ALUNOS ===== */
 function cadastrarAluno() {
-  if (!nome.value || !mensalidade.value || !vencimento.value) return;
-
+  if (!nomeAluno.value || !mensalidade.value || !vencimento.value) return;
   alunos.push({
-    nome: nome.value,
+    nome: nomeAluno.value,
     mensalidade: Number(mensalidade.value),
     vencimento: vencimento.value
   });
-
   salvar();
-  atualizarTela();
-  nome.value = mensalidade.value = vencimento.value = "";
+  atualizar();
+  nomeAluno.value = mensalidade.value = vencimento.value = "";
 }
 
-function receber(index) {
-  const aluno = alunos[index];
-
-  entradas += aluno.mensalidade;
-
-  const novaData = new Date(aluno.vencimento);
-  novaData.setDate(novaData.getDate() + 30);
-  aluno.vencimento = novaData.toISOString().split("T")[0];
-
+function receber(i) {
+  entradas += alunos[i].mensalidade;
+  const data = new Date(alunos[i].vencimento);
+  data.setDate(data.getDate() + 30);
+  alunos[i].vencimento = data.toISOString().split("T")[0];
   salvar();
-  atualizarTela();
+  atualizar();
 }
 
-function atualizarTela() {
+/* ===== ATUALIZAR ===== */
+function atualizar() {
+  const hoje = new Date().toISOString().split("T")[0];
   lista.innerHTML = "";
 
-  alunos.forEach((a, i) => {
+  alunos.forEach((a,i)=>{
     const atraso = a.vencimento < hoje;
-
     lista.innerHTML += `
-      <tr>
-        <td>${a.nome}</td>
-        <td>R$ ${a.mensalidade.toFixed(2)}</td>
-        <td>${a.vencimento}</td>
-        <td class="${atraso ? "status-atraso" : "status-ok"}">
-          ${atraso ? "Em atraso" : "Em dia"}
-        </td>
-        <td>
-          <button class="btn-azul" onclick="receber(${i})">Receber</button>
-        </td>
-      </tr>
-    `;
+    <tr>
+      <td>${a.nome}</td>
+      <td>R$ ${a.mensalidade.toFixed(2)}</td>
+      <td>${a.vencimento}</td>
+      <td class="${atraso?'status-atraso':'status-ok'}">
+        ${atraso?'Atraso':'Em dia'}
+      </td>
+      <td><button onclick="receber(${i})">Receber</button></td>
+    </tr>`;
   });
 
   entradasSpan.innerText = entradas.toFixed(2);
@@ -233,7 +204,6 @@ function salvar() {
   localStorage.setItem("saidas", saidas);
 }
 
-/* atalhos */
 const entradasSpan = document.getElementById("entradas");
 const saidasSpan = document.getElementById("saidas");
 const saldoSpan = document.getElementById("saldo");
