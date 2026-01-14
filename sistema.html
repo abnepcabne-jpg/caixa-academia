@@ -71,6 +71,22 @@ button {
 <button onclick="addSaida()">Salvar Saída</button>
 </div>
 
+  <div class="card">
+<h3>👤 Cadastro de Alunos</h3>
+
+<input id="nomeAluno" placeholder="Nome do aluno">
+<input type="date" id="vencimentoAluno">
+
+<button onclick="addAluno()">Cadastrar Aluno</button>
+</div>
+
+<div class="card">
+<h3>⚠️ Alunos em Atraso</h3>
+<ul id="listaAtraso"></ul>
+
+<button onclick="copiarMensagem()">Copiar mensagem de cobrança</button>
+</div>
+
 <div class="resumo">
 <h3>📊 Resumo do Caixa</h3>
 <p class="valor">Entradas: R$ <span id="totalEntradas">0</span></p>
@@ -118,4 +134,95 @@ function atualizarResumo() {
   document.getElementById("saldo").innerText =
     (totalEntradas - totalSaidas).toFixed(2);
 }
+<script>
+// ===== CAIXA =====
+let totalEntradas = Number(localStorage.getItem("totalEntradas")) || 0;
+let totalSaidas = Number(localStorage.getItem("totalSaidas")) || 0;
+
+// ===== ALUNOS =====
+let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
+
+atualizarResumo();
+verificarAtrasos();
+
+// ===== FUNÇÕES CAIXA =====
+function addEntrada() {
+  const valor = Number(document.getElementById("valorEntrada").value);
+  if (valor > 0) {
+    totalEntradas += valor;
+    salvarCaixa();
+    atualizarResumo();
+    alert("Entrada registrada!");
+  }
+}
+
+function addSaida() {
+  const valor = Number(document.getElementById("valorSaida").value);
+  if (valor > 0) {
+    totalSaidas += valor;
+    salvarCaixa();
+    atualizarResumo();
+    alert("Saída registrada!");
+  }
+}
+
+function salvarCaixa() {
+  localStorage.setItem("totalEntradas", totalEntradas);
+  localStorage.setItem("totalSaidas", totalSaidas);
+}
+
+function atualizarResumo() {
+  document.getElementById("totalEntradas").innerText = totalEntradas.toFixed(2);
+  document.getElementById("totalSaidas").innerText = totalSaidas.toFixed(2);
+  document.getElementById("saldo").innerText =
+    (totalEntradas - totalSaidas).toFixed(2);
+}
+
+// ===== FUNÇÕES ALUNOS =====
+function addAluno() {
+  const nome = document.getElementById("nomeAluno").value;
+  const vencimento = document.getElementById("vencimentoAluno").value;
+
+  if (!nome || !vencimento) {
+    alert("Preencha nome e vencimento");
+    return;
+  }
+
+  alunos.push({ nome, vencimento });
+  localStorage.setItem("alunos", JSON.stringify(alunos));
+
+  document.getElementById("nomeAluno").value = "";
+  document.getElementById("vencimentoAluno").value = "";
+
+  verificarAtrasos();
+  alert("Aluno cadastrado!");
+}
+
+function verificarAtrasos() {
+  const hoje = new Date().toISOString().split("T")[0];
+  const lista = document.getElementById("listaAtraso");
+  lista.innerHTML = "";
+
+  const atrasados = alunos.filter(a => a.vencimento < hoje);
+
+  atrasados.forEach(a => {
+    const li = document.createElement("li");
+    li.innerText = `${a.nome} - vencido em ${a.vencimento}`;
+    lista.appendChild(li);
+  });
+
+  if (atrasados.length > 0) {
+    alert(`⚠️ ${atrasados.length} aluno(s) com pagamento em atraso`);
+  }
+}
+
+function copiarMensagem() {
+  const texto =
+    "Olá, identificamos que seu pagamento está em atraso. " +
+    "Pedimos que regularize o quanto antes para evitar o cancelamento da matrícula. Obrigado.";
+
+  navigator.clipboard.writeText(texto);
+  alert("Mensagem copiada! Cole no WhatsApp.");
+}
 </script>
+
