@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Caixa Academia</title>
+<style>
+body {
+  font-family: Arial;
+  background: #111;
+  color: #fff;
+  padding: 20px;
+}
+h1 {
+  color: #00c853;
+}
+.card {
+  background: #1e1e1e;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+input, select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+}
+button {
+  margin-top: 10px;
+  padding: 10px;
+  background: #00c853;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Caixa da Academia</h1>
+
+<div class="card">
+<h3>Entrada - Aluno</h3>
+<input placeholder="Nome do aluno">
+<input type="date">
+<select>
+  <option>Pix</option>
+  <option>Dinheiro</option>
+  <option>Cartão</option>
+</select>
+<input placeholder="Responsável que recebeu">
+<button>Salvar Entrada</button>
+</div>
+
+<div class="card">
+<h3>Saída - Despesas</h3>
+<input placeholder="Descrição da despesa">
+<input type="date">
+<input placeholder="Valor">
+<button>Salvar Saída</button>
+</div>
+
+<div class="card">
+<h3>⚠️ Alunos em atraso</h3>
+<p>Nenhum aluno em atraso</p>
+<button onclick="alert('Mensagem copiada!')">Copiar mensagem de cobrança</button>
+</div>
+
+</body>
+</html>
