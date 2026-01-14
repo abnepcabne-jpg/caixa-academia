@@ -80,15 +80,19 @@ button {
 </div>
 
 <script>
-let totalEntradas = 0;
-let totalSaidas = 0;
+let totalEntradas = Number(localStorage.getItem("totalEntradas")) || 0;
+let totalSaidas = Number(localStorage.getItem("totalSaidas")) || 0;
+
+atualizarResumo();
 
 function addEntrada() {
   const valor = Number(document.getElementById("valorEntrada").value);
   if (valor > 0) {
     totalEntradas += valor;
+    salvar();
     atualizarResumo();
     alert("Entrada registrada!");
+    document.getElementById("valorEntrada").value = "";
   }
 }
 
@@ -96,17 +100,22 @@ function addSaida() {
   const valor = Number(document.getElementById("valorSaida").value);
   if (valor > 0) {
     totalSaidas += valor;
+    salvar();
     atualizarResumo();
     alert("Saída registrada!");
+    document.getElementById("valorSaida").value = "";
   }
+}
+
+function salvar() {
+  localStorage.setItem("totalEntradas", totalEntradas);
+  localStorage.setItem("totalSaidas", totalSaidas);
 }
 
 function atualizarResumo() {
   document.getElementById("totalEntradas").innerText = totalEntradas.toFixed(2);
   document.getElementById("totalSaidas").innerText = totalSaidas.toFixed(2);
-  document.getElementById("saldo").innerText = (totalEntradas - totalSaidas).toFixed(2);
+  document.getElementById("saldo").innerText =
+    (totalEntradas - totalSaidas).toFixed(2);
 }
 </script>
-
-</body>
-</html>
