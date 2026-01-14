@@ -9,9 +9,10 @@
 <style>
 :root {
   --verde: #00e676;
+  --vermelho: #ff5252;
+  --azul: #2979ff;
   --preto: #0f0f0f;
   --card: #1c1c1c;
-  --cinza: #aaa;
 }
 
 body {
@@ -34,21 +35,21 @@ header h1 {
 }
 
 .container {
-  padding: 20px;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: auto;
+  padding: 20px;
 }
 
 .section-title {
-  margin: 30px 0 10px;
   color: var(--verde);
+  margin-top: 30px;
   border-left: 4px solid var(--verde);
   padding-left: 10px;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
   gap: 15px;
 }
 
@@ -56,11 +57,6 @@ header h1 {
   background: var(--card);
   padding: 15px;
   border-radius: 10px;
-}
-
-.card h3 {
-  margin-top: 0;
-  color: var(--verde);
 }
 
 input {
@@ -73,40 +69,47 @@ input {
 
 button {
   width: 100%;
-  padding: 12px;
-  margin-top: 10px;
+  padding: 10px;
+  margin-top: 8px;
   border-radius: 6px;
   border: none;
   font-weight: bold;
   cursor: pointer;
 }
 
-.btn-primary {
+.btn {
   background: var(--verde);
 }
 
-.btn-danger {
-  background: #ff5252;
+.btn-azul {
+  background: var(--azul);
 }
 
-.btn-secondary {
-  background: #2979ff;
+.btn-vermelho {
+  background: var(--vermelho);
 }
 
-.resumo {
-  background: #000;
-  padding: 20px;
-  border-radius: 10px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  padding: 8px;
   text-align: center;
 }
 
-.valor {
-  font-size: 20px;
+th {
+  background: #000;
 }
 
-ul {
-  padding-left: 18px;
-  color: var(--cinza);
+.status-ok {
+  color: var(--verde);
+}
+
+.status-atraso {
+  color: var(--vermelho);
 }
 </style>
 </head>
@@ -114,7 +117,7 @@ ul {
 <body>
 
 <header>
-  <h1>💪 Caixa da Academia</h1>
+  <h1>💪 Sistema Caixa Academia</h1>
 </header>
 
 <div class="container">
@@ -122,168 +125,117 @@ ul {
 <!-- CAIXA -->
 <h2 class="section-title">Caixa</h2>
 <div class="grid">
-
   <div class="card">
-    <h3>Entrada</h3>
-    <input id="valorEntrada" type="number" placeholder="Valor recebido (R$)">
-    <button class="btn-primary" onclick="addEntrada()">Adicionar</button>
-  </div>
-
-  <div class="card">
-    <h3>Saída</h3>
-    <input id="valorSaida" type="number" placeholder="Valor pago (R$)">
-    <button class="btn-primary" onclick="addSaida()">Adicionar</button>
-  </div>
-
-  <div class="card resumo">
     <h3>Resumo</h3>
-    <p class="valor">Entradas: R$ <span id="totalEntradas">0</span></p>
-    <p class="valor">Saídas: R$ <span id="totalSaidas">0</span></p>
+    <p>Entradas: R$ <span id="entradas">0</span></p>
+    <p>Saídas: R$ <span id="saidas">0</span></p>
     <hr>
-    <p class="valor"><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
-    <button class="btn-danger" onclick="fecharCaixa()">Fechar Caixa do Dia</button>
+    <p><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
   </div>
-
 </div>
 
-<!-- ALUNOS -->
-<h2 class="section-title">Alunos</h2>
+<!-- CADASTRO -->
+<h2 class="section-title">Cadastrar Aluno</h2>
 <div class="grid">
-
   <div class="card">
-    <h3>Cadastrar Aluno</h3>
-    <input id="nomeAluno" placeholder="Nome do aluno">
-    <input type="date" id="vencimentoAluno">
-    <button class="btn-primary" onclick="addAluno()">Cadastrar</button>
+    <input id="nome" placeholder="Nome do aluno">
+    <input id="mensalidade" type="number" placeholder="Valor da mensalidade">
+    <input id="vencimento" type="date">
+    <button class="btn" onclick="cadastrarAluno()">Cadastrar</button>
   </div>
-
-  <div class="card">
-    <h3>Em atraso</h3>
-    <ul id="listaAtraso"></ul>
-    <button class="btn-secondary" onclick="copiarMensagem()">Copiar mensagem</button>
-  </div>
-
 </div>
 
-<!-- RELATÓRIOS -->
-<h2 class="section-title">Relatórios</h2>
-<div class="grid">
-  <div class="card">
-    <h3>Mensal</h3>
-    <button class="btn-secondary" onclick="gerarPDF()">Gerar PDF</button>
-  </div>
+<!-- LISTA -->
+<h2 class="section-title">Lista de Alunos</h2>
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Aluno</th>
+        <th>Mensalidade</th>
+        <th>Vencimento</th>
+        <th>Status</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody id="lista"></tbody>
+  </table>
 </div>
 
 </div>
 
 <script>
+let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
+let entradas = Number(localStorage.getItem("entradas")) || 0;
+let saidas = Number(localStorage.getItem("saidas")) || 0;
+
 const hoje = new Date().toISOString().split("T")[0];
 
-let totalEntradas = Number(localStorage.getItem("totalEntradas")) || 0;
-let totalSaidas = Number(localStorage.getItem("totalSaidas")) || 0;
-let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
-let historico = JSON.parse(localStorage.getItem("historico")) || [];
-
-atualizarResumo();
-verificarAtrasos();
-
-/* ===== CAIXA ===== */
-function addEntrada() {
-  const v = Number(valorEntrada.value);
-  if (v > 0) {
-    totalEntradas += v;
-    salvar();
-    atualizarResumo();
-    valorEntrada.value = "";
-  }
-}
-
-function addSaida() {
-  const v = Number(valorSaida.value);
-  if (v > 0) {
-    totalSaidas += v;
-    salvar();
-    atualizarResumo();
-    valorSaida.value = "";
-  }
-}
-
-function fecharCaixa() {
-  if (!confirm("Deseja fechar o caixa do dia?")) return;
-
-  historico.push({
-    data: hoje,
-    entradas: totalEntradas,
-    saidas: totalSaidas,
-    saldo: totalEntradas - totalSaidas
-  });
-
-  totalEntradas = 0;
-  totalSaidas = 0;
-  salvar();
-  atualizarResumo();
-}
-
-function atualizarResumo() {
-  totalEntradasSpan.innerText = totalEntradas.toFixed(2);
-  totalSaidasSpan.innerText = totalSaidas.toFixed(2);
-  saldoSpan.innerText = (totalEntradas - totalSaidas).toFixed(2);
-}
+atualizarTela();
 
 /* ===== ALUNOS ===== */
-function addAluno() {
-  if (!nomeAluno.value || !vencimentoAluno.value) return;
-  alunos.push({ nome: nomeAluno.value, vencimento: vencimentoAluno.value });
+function cadastrarAluno() {
+  if (!nome.value || !mensalidade.value || !vencimento.value) return;
+
+  alunos.push({
+    nome: nome.value,
+    mensalidade: Number(mensalidade.value),
+    vencimento: vencimento.value
+  });
+
   salvar();
-  verificarAtrasos();
-  nomeAluno.value = "";
-  vencimentoAluno.value = "";
+  atualizarTela();
+  nome.value = mensalidade.value = vencimento.value = "";
 }
 
-function verificarAtrasos() {
-  listaAtraso.innerHTML = "";
-  alunos.filter(a => a.vencimento < hoje).forEach(a => {
-    const li = document.createElement("li");
-    li.innerText = `${a.nome} - vencido em ${a.vencimento}`;
-    listaAtraso.appendChild(li);
+function receber(index) {
+  const aluno = alunos[index];
+
+  entradas += aluno.mensalidade;
+
+  const novaData = new Date(aluno.vencimento);
+  novaData.setDate(novaData.getDate() + 30);
+  aluno.vencimento = novaData.toISOString().split("T")[0];
+
+  salvar();
+  atualizarTela();
+}
+
+function atualizarTela() {
+  lista.innerHTML = "";
+
+  alunos.forEach((a, i) => {
+    const atraso = a.vencimento < hoje;
+
+    lista.innerHTML += `
+      <tr>
+        <td>${a.nome}</td>
+        <td>R$ ${a.mensalidade.toFixed(2)}</td>
+        <td>${a.vencimento}</td>
+        <td class="${atraso ? "status-atraso" : "status-ok"}">
+          ${atraso ? "Em atraso" : "Em dia"}
+        </td>
+        <td>
+          <button class="btn-azul" onclick="receber(${i})">Receber</button>
+        </td>
+      </tr>
+    `;
   });
-}
 
-function copiarMensagem() {
-  navigator.clipboard.writeText(
-    "Olá! Seu pagamento está em atraso. Por favor regularize para evitar o cancelamento da matrícula."
-  );
-  alert("Mensagem copiada!");
-}
-
-/* ===== PDF ===== */
-function gerarPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.text("Relatório Mensal - Caixa Academia", 10, 10);
-  let y = 20;
-
-  historico.forEach(h => {
-    doc.text(
-      `Data: ${h.data} | Entradas: R$ ${h.entradas.toFixed(2)} | Saídas: R$ ${h.saidas.toFixed(2)} | Saldo: R$ ${h.saldo.toFixed(2)}`,
-      10, y
-    );
-    y += 10;
-  });
-
-  doc.save("relatorio_caixa.pdf");
+  entradasSpan.innerText = entradas.toFixed(2);
+  saidasSpan.innerText = saidas.toFixed(2);
+  saldoSpan.innerText = (entradas - saidas).toFixed(2);
 }
 
 function salvar() {
-  localStorage.setItem("totalEntradas", totalEntradas);
-  localStorage.setItem("totalSaidas", totalSaidas);
   localStorage.setItem("alunos", JSON.stringify(alunos));
-  localStorage.setItem("historico", JSON.stringify(historico));
+  localStorage.setItem("entradas", entradas);
+  localStorage.setItem("saidas", saidas);
 }
 
 /* atalhos */
-const totalEntradasSpan = document.getElementById("totalEntradas");
-const totalSaidasSpan = document.getElementById("totalSaidas");
+const entradasSpan = document.getElementById("entradas");
+const saidasSpan = document.getElementById("saidas");
 const saldoSpan = document.getElementById("saldo");
 </script>
 
