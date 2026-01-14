@@ -3,211 +3,117 @@
 <head>
 <meta charset="UTF-8">
 <title>Sistema Caixa Academia</title>
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-body {
-  margin:0;
-  font-family:Arial;
-  background:#0f0f0f;
-  color:#fff;
-}
-header {
-  background:#000;
-  padding:15px;
-  text-align:center;
-  border-bottom:3px solid #00e676;
-}
-.container {
-  max-width:1200px;
-  margin:auto;
-  padding:20px;
-}
-.card {
-  background:#1c1c1c;
-  padding:15px;
-  border-radius:10px;
-  margin-bottom:20px;
-}
-h2 { color:#00e676; }
-input {
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  border:none;
-  border-radius:6px;
-}
-button {
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  border:none;
-  border-radius:6px;
-  font-weight:bold;
-  cursor:pointer;
-  background:#00e676;
-}
-table {
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-}
-th, td {
-  padding:8px;
-  text-align:center;
-}
-.status-ok { color:#00e676; }
-.status-atraso { color:#ff5252; }
+body{margin:0;font-family:Arial;background:#0f172a;color:#e5e7eb}
+.login{display:flex;justify-content:center;align-items:center;height:100vh}
+.login .card{width:320px}
+.sidebar{width:220px;height:100vh;background:#020617;position:fixed;padding:20px}
+.sidebar h2{color:#22c55e;text-align:center}
+.sidebar button{width:100%;margin-top:10px;padding:10px;background:#16a34a;border:none;color:#fff;font-weight:bold;cursor:pointer}
+.main{margin-left:240px;padding:20px}
+.card{background:#020617;padding:15px;border-radius:10px;margin-bottom:20px;box-shadow:0 0 15px rgba(0,0,0,.4)}
+input,select{width:100%;padding:8px;margin-top:5px;border-radius:6px;border:none}
+button.action{background:#22c55e;color:#000;font-weight:bold;padding:10px;width:100%;border:none;border-radius:6px;margin-top:10px;cursor:pointer}
+.dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px}
+.dashboard div{background:#020617;padding:20px;border-radius:10px;text-align:center;font-size:18px}
+ul{padding-left:20px}
+.alerta{position:fixed;right:20px;top:20px;background:#7f1d1d;padding:15px;border-radius:10px;display:none}
 </style>
 </head>
-
 <body>
 
-<header>
-<h1>💪 Sistema Caixa Academia</h1>
-</header>
-
-<div class="container">
-
-<div class="card">
-<h2>📊 Caixa</h2>
-<p>Entradas: R$ <span id="entradas">0</span></p>
-<p>Saídas: R$ <span id="saidas">0</span></p>
-<hr>
-<p><strong>Saldo: R$ <span id="saldo">0</span></strong></p>
+<div id="login" class="login">
+  <div class="card">
+    <h3>Login do Sistema</h3>
+    <input id="user" placeholder="Usuário">
+    <input id="pass" type="password" placeholder="Senha">
+    <button class="action" onclick="logar()">Entrar</button>
+  </div>
 </div>
 
+<div id="sistema" style="display:none">
+<div class="sidebar">
+<h2>🏋️ Academia</h2>
+<button onclick="mostrar('dashboard')">Dashboard</button>
+<button onclick="mostrar('alunos')">Alunos</button>
+<button onclick="mostrar('caixa')">Caixa</button>
+<button onclick="fecharCaixa()">Fechar Caixa</button>
+<button onclick="gerarPDF()">Relatório PDF</button>
+</div>
+<div class="alerta" id="alertaAtraso"></div>
+<div class="main">
+<section id="dashboard">
+<div class="dashboard">
+<div>Entradas<br>R$ <span id="tEntradas">0</span></div>
+<div>Gastos<br>R$ <span id="tSaidas">0</span></div>
+<div>Saldo<br>R$ <span id="saldo">0</span></div>
+</div>
+</section>
+<section id="alunos" style="display:none">
 <div class="card">
-<h2>➕ Entrada Manual (Diária / Produto)</h2>
+<h3>Cadastro de Aluno</h3>
+<input id="nomeAluno" placeholder="Nome">
+<input type="number" id="mensalidade" placeholder="Mensalidade">
+<input type="date" id="vencimento">
+<button class="action" onclick="addAluno()">Cadastrar</button>
+</div>
+<div class="card">
+<h3>Lista de Alunos</h3>
+<ul id="listaAlunos"></ul>
+</div>
+</section>
+<section id="caixa" style="display:none">
+<div class="card">
+<h3>Entrada Manual / Mensalidade</h3>
+<select id="alunoPagamento"></select>
 <input id="descEntrada" placeholder="Descrição">
-<input id="valorEntrada" type="number" placeholder="Valor (R$)">
-<button onclick="entradaManual()">Adicionar Entrada</button>
+<input type="number" id="valorEntrada" placeholder="Valor">
+<button class="action" onclick="pagarAluno()">Registrar Pagamento</button>
 </div>
-
 <div class="card">
-<h2>➖ Gastos / Despesas</h2>
-<input id="descSaida" placeholder="Descrição do gasto">
-<input id="valorSaida" type="number" placeholder="Valor (R$)">
-<button onclick="saida()">Adicionar Gasto</button>
+<h3>Gastos / Despesas</h3>
+<input id="descSaida" placeholder="Descrição">
+<input type="number" id="valorSaida" placeholder="Valor">
+<button class="action" onclick="addSaida()">Adicionar Gasto</button>
+</div>
+</section>
+</div>
 </div>
 
-<div class="card">
-<h2>👤 Cadastrar Aluno</h2>
-<input id="nomeAluno" placeholder="Nome do aluno">
-<input id="mensalidadeAluno" type="number" placeholder="Mensalidade">
-<input id="vencimentoAluno" type="date">
-<button onclick="cadastrarAluno()">Cadastrar Aluno</button>
-</div>
-
-<div class="card">
-<h2>📋 Lista de Alunos</h2>
-<table>
-<thead>
-<tr>
-<th>Nome</th>
-<th>Mensalidade</th>
-<th>Vencimento</th>
-<th>Status</th>
-<th>Ação</th>
-</tr>
-</thead>
-<tbody id="listaAlunos"></tbody>
-</table>
-</div>
-
-</div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
-let entradas = Number(localStorage.getItem("entradas")) || 0;
-let saidas = Number(localStorage.getItem("saidas")) || 0;
+// LOGIN
+const USER='admin', PASS='1234';
+function logar(){if(user.value===USER && pass.value===PASS){login.style.display='none';sistema.style.display='block';}else alert('Login inválido')}
 
-const entradasSpan = document.getElementById("entradas");
-const saidasSpan = document.getElementById("saidas");
-const saldoSpan = document.getElementById("saldo");
-const lista = document.getElementById("listaAlunos");
+let entradas=JSON.parse(localStorage.getItem('entradas'))||[];
+let saidas=JSON.parse(localStorage.getItem('saidas'))||[];
+let alunos=JSON.parse(localStorage.getItem('alunos'))||[];
 
-atualizarTela();
+function mostrar(id){document.querySelectorAll('section').forEach(s=>s.style.display='none');document.getElementById(id).style.display='block'}
+function salvar(){localStorage.setItem('entradas',JSON.stringify(entradas));localStorage.setItem('saidas',JSON.stringify(saidas));localStorage.setItem('alunos',JSON.stringify(alunos));atualizar()}
+function atualizar(){let te=entradas.reduce((s,a)=>s+a.valor,0);let ts=saidas.reduce((s,a)=>s+a.valor,0);tEntradas.innerText=te.toFixed(2);tSaidas.innerText=ts.toFixed(2);saldo.innerText=(te-ts).toFixed(2);listarAlunos();carregarSelect();verAtrasos()}
 
-function entradaManual() {
-  const valor = Number(valorEntrada.value);
-  if (valor <= 0) return;
-  entradas += valor;
-  salvar();
-  atualizarTela();
-  valorEntrada.value = "";
-  descEntrada.value = "";
-}
+function addAluno(){let n=nomeAluno.value;let m=Number(mensalidade.value);let v=vencimento.value;if(!n||!m||!v)return alert('Preencha tudo');alunos.push({n,m,v,historico:[]});salvar();nomeAluno.value='';mensalidade.value='';vencimento.value=''}
 
-function saida() {
-  const valor = Number(valorSaida.value);
-  if (valor <= 0) return;
-  saidas += valor;
-  salvar();
-  atualizarTela();
-  valorSaida.value = "";
-  descSaida.value = "";
-}
+function listarAlunos(){listaAlunos.innerHTML='';alunos.forEach(a=>{let li=document.createElement('li');li.innerText=`${a.n} | Mensalidade R$ ${a.m} | Vence ${a.v}`;listaAlunos.appendChild(li)})}
 
-function cadastrarAluno() {
-  if (!nomeAluno.value || !mensalidadeAluno.value || !vencimentoAluno.value) {
-    alert("Preencha todos os campos");
-    return;
-  }
+function carregarSelect(){alunoPagamento.innerHTML='<option value="">Pagamento Manual</option>';alunos.forEach((a,i)=>{let o=document.createElement('option');o.value=i;o.innerText=a.n;alunoPagamento.appendChild(o)})}
 
-  alunos.push({
-    nome: nomeAluno.value,
-    mensalidade: Number(mensalidadeAluno.value),
-    vencimento: vencimentoAluno.value
-  });
+function pagarAluno(){let idx=alunoPagamento.value;let valor=Number(valorEntrada.value);let desc=descEntrada.value||'Pagamento';if(valor<=0)return;
+entradas.push({desc,valor,data:new Date().toLocaleDateString()});
+if(idx!==''){alunos[idx].historico.push({data:new Date().toLocaleDateString(),valor});alunos[idx].v=new Date(new Date(alunos[idx].v).setMonth(new Date(alunos[idx].v).getMonth()+1)).toISOString().split('T')[0];}
+salvar();valorEntrada.value='';descEntrada.value=''}
 
-  salvar();
-  atualizarTela();
+function addSaida(){let d=descSaida.value;let v=Number(valorSaida.value);if(!v)return;saidas.push({d,v,data:new Date().toLocaleDateString()});salvar();descSaida.value='';valorSaida.value=''}
 
-  nomeAluno.value = "";
-  mensalidadeAluno.value = "";
-  vencimentoAluno.value = "";
-}
+function fecharCaixa(){alert('Caixa do dia fechado!')}
+function gerarPDF(){const {jsPDF}=window.jspdf;let pdf=new jsPDF();pdf.text('Relatório Academia',20,20);let y=40;entradas.forEach(e=>{pdf.text(`Entrada: ${e.desc||e.d} R$${e.valor}`,20,y);y+=8});saidas.forEach(s=>{pdf.text(`Gasto: ${s.d} R$${s.v}`,20,y);y+=8});pdf.save('relatorio.pdf')}
 
-function receber(i) {
-  entradas += alunos[i].mensalidade;
+function verAtrasos(){let hoje=new Date().toISOString().split('T')[0];let atrasados=alunos.filter(a=>a.v<hoje);if(atrasados.length){alertaAtraso.style.display='block';alertaAtraso.innerHTML='<b>Atrasados:</b><br>'+atrasados.map(a=>a.n).join('<br>')}else alertaAtraso.style.display='none'}
 
-  const data = new Date(alunos[i].vencimento);
-  data.setDate(data.getDate() + 30);
-  alunos[i].vencimento = data.toISOString().split("T")[0];
-
-  salvar();
-  atualizarTela();
-}
-
-function atualizarTela() {
-  const hoje = new Date().toISOString().split("T")[0];
-  lista.innerHTML = "";
-
-  alunos.forEach((a,i)=>{
-    const atraso = a.vencimento < hoje;
-    lista.innerHTML += `
-      <tr>
-        <td>${a.nome}</td>
-        <td>R$ ${a.mensalidade.toFixed(2)}</td>
-        <td>${a.vencimento}</td>
-        <td class="${atraso?'status-atraso':'status-ok'}">
-          ${atraso?'Em atraso':'Em dia'}
-        </td>
-        <td><button onclick="receber(${i})">Receber</button></td>
-      </tr>`;
-  });
-
-  entradasSpan.innerText = entradas.toFixed(2);
-  saidasSpan.innerText = saidas.toFixed(2);
-  saldoSpan.innerText = (entradas - saidas).toFixed(2);
-}
-
-function salvar() {
-  localStorage.setItem("alunos", JSON.stringify(alunos));
-  localStorage.setItem("entradas", entradas);
-  localStorage.setItem("saidas", saidas);
-}
+atualizar();
 </script>
-
 </body>
 </html>
