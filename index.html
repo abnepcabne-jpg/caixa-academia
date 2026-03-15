@@ -203,6 +203,66 @@
       display:grid; gap:12px;
       grid-template-columns: 1.2fr .8fr;
     }
+    .quickStats{
+      display:grid;
+      gap:12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .miniCard{
+      background:rgba(2,6,23,.32);
+      border:1px solid rgba(148,163,184,.14);
+      border-radius:18px;
+      padding:12px;
+    }
+    .miniCard .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+    .miniCard .big{margin-top:6px;font-size:20px;font-weight:900}
+    .miniCard .subline{margin-top:4px;font-size:12px;color:var(--muted)}
+    .sectionTitle{font-weight:900}
+    .sectionDesc{color:var(--muted);font-size:12px;margin-top:2px}
+    .reportGrid{
+      display:grid;
+      gap:12px;
+      grid-template-columns: repeat(12, 1fr);
+      margin-top:12px;
+    }
+    .reportBlock{grid-column:span 6}
+    .reportBlock.full{grid-column:span 12}
+    .reportPrint{
+      margin-top:14px;
+      padding:14px;
+      border:1px dashed rgba(148,163,184,.22);
+      border-radius:18px;
+      background:rgba(2,6,23,.24);
+    }
+    .reportPrint h3,.reportPrint h4{margin:0 0 8px}
+    .reportPrint p{margin:4px 0}
+    .modal{
+      position:fixed; inset:0; background:rgba(2,6,23,.72);
+      display:none; align-items:center; justify-content:center;
+      padding:20px; z-index:200;
+      backdrop-filter: blur(8px);
+    }
+    .modal.show{display:flex}
+    .modalCard{
+      width:min(760px, 100%);
+      max-height:min(90vh, 900px);
+      overflow:auto;
+      background: linear-gradient(180deg, rgba(15,31,58,.96), rgba(12,22,41,.96));
+      border:1px solid rgba(148,163,184,.16);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:16px;
+    }
+    .modalHead{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    }
+    .modalHead h3{margin:0}
+    .switch{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:999px;
+      background:rgba(148,163,184,.08); border:1px solid rgba(148,163,184,.14);
+      font-size:12px;
+    }
 
     /* Mobile navigation */
     .bottomNav{
@@ -249,9 +309,14 @@
       .main{padding-bottom:92px;}
       .bottomNav{display:flex;}
     }
+    @media (max-width: 760px){
+      .quickStats{grid-template-columns:1fr 1fr}
+      .reportBlock,.reportBlock.full{grid-column:span 12}
+    }
     @media (max-width: 520px){
       .btn{padding:12px 14px;border-radius:16px}
       input,select,textarea{padding:12px 12px;border-radius:16px}
+      .quickStats{grid-template-columns:1fr}
     }
 
     @media (max-width: 1060px){
@@ -294,6 +359,18 @@
     }
     .toast b{display:block; font-size:13px}
     .toast span{display:block; margin-top:2px; color:var(--muted); font-size:12px}
+    @media print{
+      body{background:#fff;color:#000}
+      .sidebar,.topbar,.bottomNav,.toast,.modal{display:none !important}
+      .main{padding:0}
+      .card{box-shadow:none;border:1px solid #ddd;background:#fff;color:#000}
+      .muted{color:#555}
+      .tag,.pill{border:1px solid #aaa;background:#fff;color:#000}
+      #tab-dashboard,#tab-mov,#tab-members,#tab-users,#tab-settings{display:none !important}
+      #tab-reports{display:block !important}
+      .table{background:#fff;border-color:#ccc}
+      .table th{background:#f3f4f6;color:#000}
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -727,7 +804,7 @@
                 <option value="all">Todos</option>
                 <option value="ok">Em dia</option>
                 <option value="late">Atrasados</option>
-              <option value="canceled">Cancelados</option>
+                <option value="canceled">Cancelados</option>
               </select>
             </div>
           </div>
@@ -794,7 +871,7 @@
       <div class="grid">
         <div class="card" style="grid-column:span 12">
           <div style="font-weight:900">Relatórios</div>
-          <div class="muted">Gere um resumo por período e exporte CSV (ou imprima pelo navegador)</div>
+          <div class="muted">Agora com fechamento mensal mais completo para admin, impressão e análise do caixa.</div>
           <div class="hr"></div>
 
           <div class="row">
@@ -829,7 +906,30 @@
 
           <div class="hr"></div>
 
-          <div class="row" style="justify-content:space-between">
+          <div class="quickStats">
+            <div class="miniCard">
+              <div class="lbl">Entradas</div>
+              <div class="big" id="rQuickIn">R$ 0,00</div>
+              <div class="subline" id="rQuickInSub">—</div>
+            </div>
+            <div class="miniCard">
+              <div class="lbl">Saídas</div>
+              <div class="big" id="rQuickOut">R$ 0,00</div>
+              <div class="subline" id="rQuickOutSub">—</div>
+            </div>
+            <div class="miniCard">
+              <div class="lbl">Saldo do período</div>
+              <div class="big" id="rQuickBal">R$ 0,00</div>
+              <div class="subline" id="rQuickBalSub">—</div>
+            </div>
+            <div class="miniCard">
+              <div class="lbl">Espécie em caixa</div>
+              <div class="big" id="rQuickCash">R$ 0,00</div>
+              <div class="subline" id="rQuickCashSub">Entrada em dinheiro - saída em dinheiro</div>
+            </div>
+          </div>
+
+          <div class="row" style="justify-content:space-between; margin-top:14px">
             <div class="row">
               <span class="tag good" id="rSumIn">Entradas: R$ 0,00</span>
               <span class="tag bad" id="rSumOut">Saídas: R$ 0,00</span>
@@ -838,18 +938,116 @@
             <div class="muted" id="rCount">—</div>
           </div>
 
-          <div style="overflow:auto; margin-top:10px">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Grupo</th>
-                  <th>Tipo</th>
-                  <th class="right">Total</th>
-                  <th class="right">Qtde</th>
-                </tr>
-              </thead>
-              <tbody id="reportBody"></tbody>
-            </table>
+          <div class="reportGrid">
+            <div class="reportBlock">
+              <div class="sectionTitle">Agrupamento principal</div>
+              <div class="sectionDesc">Resumo do filtro atual</div>
+              <div style="overflow:auto; margin-top:10px">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Grupo</th>
+                      <th>Tipo</th>
+                      <th class="right">Total</th>
+                      <th class="right">Qtde</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="reportBlock">
+              <div class="sectionTitle">Entradas por método</div>
+              <div class="sectionDesc">Quanto entrou em espécie, PIX, cartão e transferência</div>
+              <div style="overflow:auto; margin-top:10px">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Método</th>
+                      <th class="right">Qtde</th>
+                      <th class="right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportIncomeByPay"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="reportBlock">
+              <div class="sectionTitle">Saídas por método</div>
+              <div class="sectionDesc">Quanto saiu em espécie, PIX, cartão e transferência</div>
+              <div style="overflow:auto; margin-top:10px">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Método</th>
+                      <th class="right">Qtde</th>
+                      <th class="right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportExpenseByPay"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="reportBlock">
+              <div class="sectionTitle">O que foi pago em cada método</div>
+              <div class="sectionDesc">Cruza categoria + método para mostrar a composição das entradas</div>
+              <div style="overflow:auto; margin-top:10px">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Categoria</th>
+                      <th>Método</th>
+                      <th class="right">Qtde</th>
+                      <th class="right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportIncomeComposition"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="reportBlock">
+              <div class="sectionTitle">Entradas por categoria</div>
+              <div class="sectionDesc">Mensalidade, diária, produto, personal e outros</div>
+              <div style="overflow:auto; margin-top:10px">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Categoria</th>
+                      <th class="right">Qtde</th>
+                      <th class="right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportIncomeByCat"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="reportBlock">
+              <div class="sectionTitle">Saídas por categoria</div>
+              <div class="sectionDesc">Despesas do período: aluguel, salários, fornecedor, etc.</div>
+              <div style="overflow:auto; margin-top:10px">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Categoria</th>
+                      <th class="right">Qtde</th>
+                      <th class="right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportExpenseByCat"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="reportBlock full">
+              <div class="sectionTitle">Fechamento gerencial para impressão</div>
+              <div class="sectionDesc">Resumo executivo do período selecionado</div>
+              <div id="reportPrintSummary" class="reportPrint"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -896,13 +1094,19 @@
               <label>Nome da academia (local)</label>
               <input id="setGymName" placeholder="Ex: Academia Alpha"/>
             </div>
+            <div class="field" style="min-width:260px">
+              <label>Mensagem automática de pagamento</label>
+              <div class="switch">
+                <input id="setAutoPayMsg" type="checkbox" style="width:auto"/>
+                <span>Abrir WhatsApp após registrar pagamento</span>
+              </div>
+            </div>
           </div>
 
           <div class="row" style="margin-top:10px">
             <button class="btn blue" id="btnSaveSettings">Salvar</button>
           </div>
 
-          
           <div class="hr"></div>
           <div style="font-weight:900">Backup</div>
           <div class="muted">Exportar/Importar dados (JSON). Útil para cópia de segurança.</div>
@@ -939,22 +1143,130 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="modal" id="memberModal">
+  <div class="modalCard">
+    <div class="modalHead">
+      <div>
+        <h3 id="memberModalTitle">Aluno</h3>
+        <div class="muted">Cadastro e edição sem usar prompt.</div>
+      </div>
+      <button class="btn danger" id="btnCloseMemberModal">Fechar</button>
+    </div>
+    <div class="hr"></div>
+    <input type="hidden" id="memberEditId"/>
+    <div class="row">
+      <div class="field">
+        <label>Nome</label>
+        <input id="memberName" placeholder="Nome do aluno"/>
+      </div>
+      <div class="field">
+        <label>Telefone / WhatsApp</label>
+        <input id="memberPhone" placeholder="(79) 99999-1111"/>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="field">
+        <label>Plano</label>
+        <input id="memberPlan" placeholder="Mensal"/>
+      </div>
+      <div class="field">
+        <label>Vencimento</label>
+        <input id="memberDue" type="date"/>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="memberStatus">
+          <option value="active">Ativo</option>
+          <option value="canceled">Cancelado</option>
+        </select>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="field" style="min-width:100%">
+        <label>Observações</label>
+        <textarea id="memberNotes" placeholder="Observações do aluno"></textarea>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end; margin-top:12px">
+      <button class="btn" id="btnCancelMemberModal">Cancelar</button>
+      <button class="btn blue" id="btnSaveMemberModal">Salvar aluno</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="moveModal">
+  <div class="modalCard">
+    <div class="modalHead">
+      <div>
+        <h3>Editar movimentação</h3>
+        <div class="muted">Altere dados sem apagar o lançamento.</div>
+      </div>
+      <button class="btn danger" id="btnCloseMoveModal">Fechar</button>
+    </div>
+    <div class="hr"></div>
+    <input type="hidden" id="editMoveId"/>
+    <div class="row">
+      <div class="field">
+        <label>Tipo</label>
+        <select id="editMovType">
+          <option value="income">Entrada</option>
+          <option value="expense">Saída</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Categoria</label>
+        <input id="editMovCat" placeholder="Categoria"/>
+      </div>
+      <div class="field">
+        <label>Valor</label>
+        <input id="editMovAmount" type="number" step="0.01"/>
+      </div>
+      <div class="field">
+        <label>Data</label>
+        <input id="editMovDate" type="date"/>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="field">
+        <label>Método</label>
+        <select id="editMovPay">
+          <option>Dinheiro</option>
+          <option>PIX</option>
+          <option>Cartão Débito</option>
+          <option>Cartão Crédito</option>
+          <option>Transferência</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Aluno</label>
+        <select id="editMovMember"><option value="">—</option></select>
+      </div>
+      <div class="field" style="min-width:280px">
+        <label>Descrição</label>
+        <input id="editMovDesc"/>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="field" style="min-width:100%">
+        <label>Observação</label>
+        <textarea id="editMovNote"></textarea>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end; margin-top:12px">
+      <button class="btn" id="btnCancelMoveModal">Cancelar</button>
+      <button class="btn blue" id="btnSaveMoveModal">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
 <!-- Supabase JS (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-/* =============================
-   SUPABASE CONFIG
-============================= */
-// ✅ COLE AQUI OS DADOS DO SEU PROJETO SUPABASE (Settings > API)
 const SUPABASE_URL = "https://ziycokukjwwhmysgrzkw.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_PKK4x2cntWfeU-OIIAf9mQ_GFQKSUT0";
-
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* =============================
-   HELPERS
-============================= */
 function moneyBR(v){
   const n = Number(v || 0);
   return n.toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
@@ -975,17 +1287,12 @@ function fmtDateBR(iso){
   const d = parseISO(iso);
   return d ? d.toLocaleDateString("pt-BR") : iso;
 }
-
 function digitsOnly(s){ return String(s||"").replace(/\D+/g,""); }
 function normalizePhoneToWA(phone){
-  // aceita (79) 99999-1111 ou 079999991111 ou +55...
   const d = digitsOnly(phone);
   if(!d) return "";
-  // se já tiver 55 + DDD + número (>=12), usa como está
   if(d.startsWith("55") && d.length >= 12) return d;
-  // se tiver DDD+numero (10 ou 11), adiciona 55
   if(d.length === 10 || d.length === 11) return "55" + d;
-  // fallback
   return d;
 }
 function waMessage(tpl, member){
@@ -996,7 +1303,15 @@ function waMessage(tpl, member){
                   .replaceAll("{academia}", acad)
                   .replaceAll("{pix}", pix);
 }
-
+function paymentWaMessage(tpl, member, move){
+  const acad = DB.settings.gymName || "Academia";
+  return (tpl||"").replaceAll("{nome}", member?.name||"")
+                  .replaceAll("{valor}", moneyBR(move?.amount || 0))
+                  .replaceAll("{data}", fmtDateBR(move?.date || isoToday()))
+                  .replaceAll("{metodo}", move?.pay || "—")
+                  .replaceAll("{categoria}", move?.cat || "Pagamento")
+                  .replaceAll("{academia}", acad);
+}
 function toast(title, msg){
   const t = document.getElementById("toast");
   t.innerHTML = `<b>${title}</b><span>${msg || ""}</span>`;
@@ -1025,17 +1340,46 @@ function inRange(iso, fromISO, toISO){
   }
   return true;
 }
+function escapeHtml(s){
+  return String(s ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[ch]));
+}
+function aggregateBy(items, keyFn, amountFn = x=>Number(x.amount||0)){
+  const map = new Map();
+  items.forEach(item=>{
+    const key = keyFn(item) || "—";
+    const cur = map.get(key) || { key, count:0, total:0 };
+    cur.count += 1;
+    cur.total += Number(amountFn(item) || 0);
+    map.set(key, cur);
+  });
+  return [...map.values()].sort((a,b)=>b.total-a.total);
+}
+function fillSimpleTable(tbodyId, rows, renderRow, colspan, emptyText){
+  const body = document.getElementById(tbodyId);
+  if(!body) return;
+  body.innerHTML = "";
+  if(!rows.length){
+    body.innerHTML = `<tr><td colspan="${colspan}" class="muted">${emptyText}</td></tr>`;
+    return;
+  }
+  rows.forEach(r=> body.insertAdjacentHTML("beforeend", renderRow(r)));
+}
 
-/* =============================
-   STATE (SINCRONIZADO)
-============================= */
 let DB = {
-  settings: { gymName: "Financeiro Completo", pixKey: "", waTpl: "Olá {nome}, sua mensalidade venceu em {vencimento}. PIX: {pix} • {academia}" }, // local
-  profile: null, // {id,name,role,active,email}
+  settings: {
+    gymName: "Financeiro Completo",
+    pixKey: "",
+    waTpl: "Olá {nome}, sua mensalidade venceu em {vencimento}. PIX: {pix} • {academia}",
+    autoPayMsg: false,
+    payTpl: "Olá {nome}, confirmamos o pagamento de {valor} em {data} via {metodo}. Obrigado por treinar na {academia}."
+  },
+  profile: null,
   cash: { isOpen:false, openedAt:null, closedAt:null, openedBy:null, closedBy:null },
   members: [],
   moves: [],
-  users: [] // profiles (admin)
+  users: []
 };
 
 const loginView = document.getElementById("loginView");
@@ -1050,186 +1394,99 @@ document.getElementById("fTo").value = isoToday();
 document.getElementById("rFrom").value = shiftISO(isoToday(), -30);
 document.getElementById("rTo").value = isoToday();
 
-/* =============================
-   AUTH (SUPABASE)
-============================= */
-function isAdmin(){
-  return DB.profile && DB.profile.role === "admin" && DB.profile.active === true;
-}
-function currentUserName(){
-  return (DB.profile && DB.profile.name) ? DB.profile.name : "—";
-}
+function isAdmin(){ return DB.profile && DB.profile.role === "admin" && DB.profile.active === true; }
+function currentUserName(){ return (DB.profile && DB.profile.name) ? DB.profile.name : "—"; }
+function currentUserId(){ return DB.profile ? DB.profile.id : null; }
 
 async function getSingleCashSessionId(){
-  const { data, error } = await sb
-    .from("cash_sessions")
-    .select("id")
-    .limit(1);
+  const { data, error } = await sb.from("cash_sessions").select("id").limit(1);
   if(error) throw error;
-
   const id = data && data[0] ? data[0].id : null;
   if(id) return id;
-
-  const ins = await sb
-    .from("cash_sessions")
-    .insert({ is_open: false })
-    .select("id")
-    .single();
-
+  const ins = await sb.from("cash_sessions").insert({ is_open: false }).select("id").single();
   if(ins.error) throw ins.error;
   return ins.data.id;
 }
-
-
-function currentUserId(){
-  return DB.profile ? DB.profile.id : null;
-}
-
 async function ensureProfile(user){
   if(!user) return null;
-
-  // tenta ler
   const { data: rows, error } = await sb.from("profiles").select("*").eq("id", user.id).limit(1);
   if(error) throw error;
-
   if(rows && rows.length){
     const p = rows[0];
     return { ...p, email: user.email };
   }
-
-  // cria perfil padrão
-  const ins = {
-    id: user.id,
-    name: (user.user_metadata && user.user_metadata.name) ? user.user_metadata.name : (user.email || ""),
-    role: "staff",
-    active: true
-  };
+  const ins = { id: user.id, name: (user.user_metadata && user.user_metadata.name) ? user.user_metadata.name : (user.email || ""), role: "staff", active: true };
   const { error: err2 } = await sb.from("profiles").insert(ins);
   if(err2) throw err2;
-
   const { data: rows2, error: err3 } = await sb.from("profiles").select("*").eq("id", user.id).limit(1);
   if(err3) throw err3;
-
   const p = rows2[0];
   return { ...p, email: user.email };
 }
-
 async function loadAll(){
-  // caixa
   const { data: cashRows, error: cashErr } = await sb.from("cash_sessions").select("*").limit(1);
   if(cashErr) throw cashErr;
   if(cashRows && cashRows.length){
     const c = cashRows[0];
-    DB.cash = {
-      isOpen: !!c.is_open,
-      openedAt: c.opened_at,
-      closedAt: c.closed_at,
-      openedBy: c.opened_by,
-      closedBy: c.closed_by
-    };
+    DB.cash = { isOpen: !!c.is_open, openedAt: c.opened_at, closedAt: c.closed_at, openedBy: c.opened_by, closedBy: c.closed_by };
   }
-
-  // alunos
   const { data: members, error: memErr } = await sb.from("members").select("*").order("name", {ascending:true});
   if(memErr) throw memErr;
   DB.members = (members || []).map(m => ({
-    id: m.id,
-    name: m.name,
-    phone: m.phone || "",
-    plan: m.plan || "Mensal",
-    due: m.due,
-    notes: m.notes || "",
-    status: m.status || "active"
+    id: m.id, name: m.name, phone: m.phone || "", plan: m.plan || "Mensal", due: m.due, notes: m.notes || "", status: m.status || "active"
   }));
-
-  // moves
   const { data: moves, error: movErr } = await sb.from("moves").select("*").order("created_at", {ascending:false});
   if(movErr) throw movErr;
   DB.moves = (moves || []).map(m => ({
-    id: m.id,
-    type: m.type,
-    cat: m.cat,
-    amount: Number(m.amount),
-    date: m.date,
-    pay: m.pay,
-    memberId: m.member_id,
-    desc: m.description,
-    note: m.note || "",
-    staff: m.staff_name || "—",
-    staffUserId: m.staff_user_id || null
+    id: m.id, type: m.type, cat: m.cat, amount: Number(m.amount), date: m.date, pay: m.pay,
+    memberId: m.member_id, desc: m.description, note: m.note || "", staff: m.staff_name || "—", staffUserId: m.staff_user_id || null,
+    createdAt: m.created_at || null
   }));
-
-  // users list (admin only)
   if(isAdmin()){
     const { data: users, error: uerr } = await sb.from("profiles").select("*").order("created_at", {ascending:false});
     if(uerr) throw uerr;
-    // precisa do email: não vem do profiles. Guardamos somente name/role/active/id e mostramos email como "—"
     DB.users = (users || []).map(u => ({...u, email: "—"}));
-  } else {
-    DB.users = [];
-  }
-
+  } else DB.users = [];
   renderAll();
 }
-
 function renderAuth(logged){
   loginView.classList.toggle("hide", !!logged);
   appView.classList.toggle("hide", !logged);
   if(logged) renderAll();
 }
 
-document.getElementById("btnShowSignup").addEventListener("click", ()=>{
-  document.getElementById("signupBox").classList.toggle("hide");
-});
-
+document.getElementById("btnShowSignup").addEventListener("click", ()=> document.getElementById("signupBox").classList.toggle("hide"));
 document.getElementById("btnSignup").addEventListener("click", async ()=>{
   try{
     const name = document.getElementById("signupName").value.trim();
     const email = document.getElementById("signupEmail").value.trim();
     const pass = document.getElementById("signupPass").value;
     if(!name || !email || !pass) return toast("Erro", "Preencha nome, email e senha.");
-
-    const { data, error } = await sb.auth.signUp({
-      email,
-      password: pass,
-      options: { data: { name } }
-    });
+    const { error } = await sb.auth.signUp({ email, password: pass, options: { data: { name } } });
     if(error) throw error;
-
     toast("Conta criada", "Agora faça login. (Se pedir confirmação, confirme no email.)");
     document.getElementById("signupBox").classList.add("hide");
-  }catch(e){
-    toast("Erro", e.message || String(e));
-  }
+  }catch(e){ toast("Erro", e.message || String(e)); }
 });
-
 document.getElementById("btnLogin").addEventListener("click", async ()=>{
   try{
     const email = document.getElementById("loginEmail").value.trim();
     const pass = document.getElementById("loginPass").value;
     if(!email || !pass) return toast("Erro", "Informe email e senha.");
-
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
     if(error) throw error;
-
-    const user = data.user;
-    DB.profile = await ensureProfile(user);
-
+    DB.profile = await ensureProfile(data.user);
     if(DB.profile.active !== true){
       await sb.auth.signOut();
       DB.profile = null;
       renderAuth(false);
       return toast("Acesso bloqueado", "Seu usuário está inativo. Fale com o admin.");
     }
-
     toast("Bem-vindo!", `Logado como ${DB.profile.name} (${DB.profile.role === "admin" ? "Admin" : "Funcionário"})`);
     renderAuth(true);
     await loadAll();
-  }catch(e){
-    toast("Login inválido", e.message || String(e));
-  }
+  }catch(e){ toast("Login inválido", e.message || String(e)); }
 });
-
 document.getElementById("btnLogout").addEventListener("click", async ()=>{
   await sb.auth.signOut();
   DB.profile = null;
@@ -1237,138 +1494,79 @@ document.getElementById("btnLogout").addEventListener("click", async ()=>{
   renderAuth(false);
 });
 
-/* =============================
-   NAV TABS
-============================= */
 const tabs = ["dashboard","mov","members","reports","users","settings"];
-document.querySelectorAll(".nav button").forEach(btn=>{
-  btn.addEventListener("click", ()=> setTab(btn.dataset.tab));
-});
-// mobile nav
-document.querySelectorAll(".bottomNav button").forEach(btn=>{
-  btn.addEventListener("click", ()=> setTab(btn.dataset.tab));
-});
+document.querySelectorAll(".nav button").forEach(btn=> btn.addEventListener("click", ()=> setTab(btn.dataset.tab)));
+document.querySelectorAll(".bottomNav button").forEach(btn=> btn.addEventListener("click", ()=> setTab(btn.dataset.tab)));
 function setTab(tab){
   document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
   document.querySelectorAll(".bottomNav button").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
-  tabs.forEach(t=>{
-    const el = document.getElementById("tab-"+t);
-    if(el) el.classList.toggle("hide", t!==tab);
-  });
-  const titles = {
-    dashboard:"Dashboard",
-    mov:"Movimentações",
-    members:"Alunos",
-    reports:"Relatórios",
-    users:"Usuários",
-    settings:"Configurações",
-  };
+  tabs.forEach(t=> document.getElementById("tab-"+t)?.classList.toggle("hide", t!==tab));
+  const titles = { dashboard:"Dashboard", mov:"Movimentações", members:"Alunos", reports:"Relatórios", users:"Usuários", settings:"Configurações" };
   document.getElementById("pageTitle").textContent = titles[tab] || "—";
   renderAll();
+  if(tab === "users") renderUsers();
+  if(tab === "reports") renderReport();
 }
+function cashStatusText(){ return DB.cash.isOpen ? "ABERTO" : "FECHADO"; }
 
-/* =============================
-   CASH OPEN/CLOSE (SYNC)
-============================= */
-function cashStatusText(){
-  return DB.cash.isOpen ? "ABERTO" : "FECHADO";
-}
 document.getElementById("btnOpenCash").addEventListener("click", async ()=>{
   try{
     if(DB.cash.isOpen){ toast("Caixa já está aberto", ""); return; }
     const staff = currentUserName();
     const id = await getSingleCashSessionId();
-
-    const payload = {
-      is_open: true,
-      opened_at: new Date().toISOString(),
-      opened_by: staff,
-      closed_at: null,
-      closed_by: null
-    };
-
-    const { error } = await sb
-      .from("cash_sessions")
-      .update(payload)
-      .eq("id", id);
-
+    const { error } = await sb.from("cash_sessions").update({ is_open: true, opened_at: new Date().toISOString(), opened_by: staff, closed_at: null, closed_by: null }).eq("id", id);
     if(error) throw error;
     toast("Caixa aberto", `Responsável: ${staff}`);
     await loadAll();
-  }catch(e){
-    console.error(e);
-    toast("Erro", e.message || String(e));
-  }
+  }catch(e){ toast("Erro", e.message || String(e)); }
 });
 document.getElementById("btnCloseCash").addEventListener("click", async ()=>{
   try{
     if(!DB.cash.isOpen){ toast("Caixa já está fechado", ""); return; }
     const staff = currentUserName();
     const id = await getSingleCashSessionId();
-
-    const payload = {
-      is_open: false,
-      closed_at: new Date().toISOString(),
-      closed_by: staff
-    };
-
-    const { error } = await sb
-      .from("cash_sessions")
-      .update(payload)
-      .eq("id", id);
-
+    const { error } = await sb.from("cash_sessions").update({ is_open: false, closed_at: new Date().toISOString(), closed_by: staff }).eq("id", id);
     if(error) throw error;
     toast("Caixa fechado", `Responsável: ${staff}`);
     await loadAll();
-  }catch(e){
-    console.error(e);
-    toast("Erro", e.message || String(e));
-  }
+  }catch(e){ toast("Erro", e.message || String(e)); }
 });
-
-
-// Fechamento do dia (PDF) + opcional fechar caixa
 document.getElementById("btnCloseDayPDF").addEventListener("click", async ()=>{
   try{
     const day = prompt("Fechamento de qual dia? (AAAA-MM-DD)", isoToday())?.trim();
     if(!day) return;
-
-    // gera PDF
     await generateCloseDayPDF(day);
-
-    // se caixa estiver aberto, pergunta se deseja fechar também
     if(DB.cash.isOpen){
       const ok = confirm("Deseja também FECHAR o caixa agora?");
       if(ok){
         const staff = currentUserName();
-        const payload = { is_open:false, closed_at: new Date().toISOString(), closed_by: staff };
         const id = await getSingleCashSessionId();
-        const { error } = await sb.from("cash_sessions").update(payload).eq("id", id);
+        const { error } = await sb.from("cash_sessions").update({ is_open:false, closed_at: new Date().toISOString(), closed_by: staff }).eq("id", id);
         if(error) throw error;
         toast("Caixa fechado", `Responsável: ${staff}`);
         await loadAll();
       }
     }
-  }catch(e){
-    toast("Erro", e.message || String(e));
-  }
+  }catch(e){ toast("Erro", e.message || String(e)); }
 });
 document.getElementById("btnBackup").addEventListener("click", ()=>{
   setTab("settings");
-  const el = document.getElementById("btnBackupExport");
-  if(el) el.scrollIntoView({behavior:"smooth", block:"center"});
+  document.getElementById("btnBackupExport")?.scrollIntoView({behavior:"smooth", block:"center"});
 });
 
-/* =============================
-   MOVIMENTAÇÕES (SYNC CRUD)
-============================= */
+function maybeSendPaymentWhatsApp(move){
+  if(!DB.settings.autoPayMsg || move.type !== "income" || !move.memberId) return;
+  const member = DB.members.find(x=>x.id === move.memberId);
+  if(!member || !member.phone) return;
+  const waPhone = normalizePhoneToWA(member.phone);
+  if(!waPhone) return;
+  const msg = encodeURIComponent(paymentWaMessage(DB.settings.payTpl, member, move));
+  window.open(`https://wa.me/${waPhone}?text=${msg}`, "_blank");
+}
+
 document.getElementById("btnAddMov").addEventListener("click", async ()=>{
   try{
-    if(!DB.cash.isOpen){
-      toast("Caixa fechado", "Abra o caixa para registrar movimentações.");
-      return;
-    }
-
+    if(!DB.cash.isOpen) return toast("Caixa fechado", "Abra o caixa para registrar movimentações.");
     const type = document.getElementById("movType").value;
     const cat = document.getElementById("movCat").value;
     const amount = Number(document.getElementById("movAmount").value);
@@ -1377,59 +1575,35 @@ document.getElementById("btnAddMov").addEventListener("click", async ()=>{
     const memberId = document.getElementById("movMember").value || null;
     const desc = document.getElementById("movDesc").value.trim();
     const note = document.getElementById("movNote").value.trim();
-
-    if(!date){ toast("Erro", "Selecione a data."); return; }
-    if(!amount || amount <= 0){ toast("Erro", "Informe um valor válido."); return; }
-    if(!desc){ toast("Erro", "Informe a descrição."); return; }
-
+    if(!date) return toast("Erro", "Selecione a data.");
+    if(!amount || amount <= 0) return toast("Erro", "Informe um valor válido.");
+    if(!desc) return toast("Erro", "Informe a descrição.");
     const staff = currentUserName();
     const staffUserId = currentUserId();
-
-    const ins = {
-      type,
-      cat,
-      amount,
-      date,
-      pay,
-      member_id: memberId,
-      description: desc,
-      note,
-      staff_name: staff,
-      staff_user_id: staffUserId
-    };
-
+    const ins = { type, cat, amount, date, pay, member_id: memberId, description: desc, note, staff_name: staff, staff_user_id: staffUserId };
     const { error } = await sb.from("moves").insert(ins);
     if(error) throw error;
-
-    // ✅ renovar vencimento se for mensalidade e tiver aluno selecionado
     if(type === "income" && memberId && (cat || "").trim().toLowerCase().includes("mensal")){
       const memRef = DB.members.find(x=>x.id===memberId);
       if(memRef && (memRef.status||"active")==="canceled"){
         toast("Aviso","Matrícula cancelada: pagamento registrado, mas o vencimento não foi renovado.");
       } else {
-      const base = parseISO(date);
-      base.setMonth(base.getMonth() + 1);
-      const off = base.getTimezoneOffset();
-      const local = new Date(base.getTime() - off*60000);
-      const newDue = local.toISOString().slice(0,10);
-
-      const { error: err2 } = await sb.from("members").update({ due: newDue }).eq("id", memberId);
-      if(err2) throw err2;
-
-      toast("Mensalidade atualizada", `Novo vencimento: ${fmtDateBR(newDue)}`);
+        const base = parseISO(date);
+        base.setMonth(base.getMonth() + 1);
+        const off = base.getTimezoneOffset();
+        const local = new Date(base.getTime() - off*60000);
+        const newDue = local.toISOString().slice(0,10);
+        const { error: err2 } = await sb.from("members").update({ due: newDue }).eq("id", memberId);
+        if(err2) throw err2;
+        toast("Mensalidade atualizada", `Novo vencimento: ${fmtDateBR(newDue)}`);
       }
-    } else {
-      toast("Salvo", "Movimentação registrada.");
-    }
-
+    } else toast("Salvo", "Movimentação registrada.");
     document.getElementById("movAmount").value = "";
     document.getElementById("movDesc").value = "";
     document.getElementById("movNote").value = "";
-
     await loadAll();
-  }catch(e){
-    toast("Erro", e.message || String(e));
-  }
+    maybeSendPaymentWhatsApp({ type, cat, amount, date, pay, memberId });
+  }catch(e){ toast("Erro", e.message || String(e)); }
 });
 document.getElementById("btnClearMov").addEventListener("click", ()=>{
   document.getElementById("movAmount").value = "";
@@ -1437,61 +1611,56 @@ document.getElementById("btnClearMov").addEventListener("click", ()=>{
   document.getElementById("movNote").value = "";
   toast("Limpo", "Campos resetados.");
 });
-
 async function deleteMove(id){
   try{
     const { error } = await sb.from("moves").delete().eq("id", id);
     if(error) throw error;
     toast("Excluído", "Movimentação removida.");
     await loadAll();
-  }catch(e){
-    toast("Erro", e.message || String(e));
-  }
+  }catch(e){ toast("Erro", e.message || String(e)); }
 }
+window.deleteMove = deleteMove;
 
-/* =============================
-   MEMBERS (SYNC CRUD)
-============================= */
-document.getElementById("btnAddMember").addEventListener("click", async ()=>{
+function openMemberModal(member = null){
+  document.getElementById("memberEditId").value = member?.id || "";
+  document.getElementById("memberModalTitle").textContent = member ? "Editar aluno" : "Adicionar aluno";
+  document.getElementById("memberName").value = member?.name || "";
+  document.getElementById("memberPhone").value = member?.phone || "";
+  document.getElementById("memberPlan").value = member?.plan || "Mensal";
+  document.getElementById("memberDue").value = member?.due || isoToday();
+  document.getElementById("memberStatus").value = member?.status || "active";
+  document.getElementById("memberNotes").value = member?.notes || "";
+  document.getElementById("memberModal").classList.add("show");
+}
+function closeMemberModal(){ document.getElementById("memberModal").classList.remove("show"); }
+document.getElementById("btnAddMember").addEventListener("click", ()=> openMemberModal());
+document.getElementById("btnCloseMemberModal").addEventListener("click", closeMemberModal);
+document.getElementById("btnCancelMemberModal").addEventListener("click", closeMemberModal);
+document.getElementById("btnSaveMemberModal").addEventListener("click", async ()=>{
   try{
-    const name = prompt("Nome do aluno:")?.trim();
-    if(!name) return;
-    const phone = prompt("Telefone/WhatsApp (opcional):")?.trim() || "";
-    const plan = prompt("Plano (ex: Mensal, Trimestral):")?.trim() || "Mensal";
-    const due = prompt("Vencimento (AAAA-MM-DD):", isoToday())?.trim() || isoToday();
-
-    const { error } = await sb.from("members").insert({ name, phone, plan, due, notes:"", status:"active" });
+    const id = document.getElementById("memberEditId").value;
+    const name = document.getElementById("memberName").value.trim();
+    const phone = document.getElementById("memberPhone").value.trim();
+    const plan = document.getElementById("memberPlan").value.trim() || "Mensal";
+    const due = document.getElementById("memberDue").value || isoToday();
+    const status = document.getElementById("memberStatus").value;
+    const notes = document.getElementById("memberNotes").value.trim();
+    if(!name) return toast("Erro", "Informe o nome do aluno.");
+    const payload = { name, phone, plan, due, status, notes };
+    let error;
+    if(id){ ({ error } = await sb.from("members").update(payload).eq("id", id)); }
+    else { ({ error } = await sb.from("members").insert(payload)); }
     if(error) throw error;
-    toast("Aluno adicionado", name);
+    closeMemberModal();
+    toast("Sucesso", id ? "Aluno atualizado." : "Aluno adicionado.");
     await loadAll();
-  }catch(e){
-    toast("Erro", e.message || String(e));
-  }
+  }catch(e){ toast("Erro", e.message || String(e)); }
 });
-
 async function editMember(id){
-  try{
-    const m = DB.members.find(x=>x.id===id);
-    if(!m) return;
-    const name = prompt("Nome:", m.name)?.trim();
-    if(!name) return;
-    const phone = prompt("Telefone/WhatsApp:", m.phone || "")?.trim() || "";
-    const plan = prompt("Plano:", m.plan || "Mensal")?.trim() || "Mensal";
-    const due = prompt("Vencimento (AAAA-MM-DD):", m.due || isoToday())?.trim() || m.due;
-    const notes = prompt("Observações:", m.notes || "") ?? m.notes;
-    const curStatus = (m.status || "active") === "canceled" ? "canceled" : "active";
-    const status = (prompt("Status (active/canceled):", curStatus) || curStatus).trim().toLowerCase();
-    const safeStatus = (status === "canceled") ? "canceled" : "active";
-
-    const { error } = await sb.from("members").update({ name, phone, plan, due, notes, status: safeStatus }).eq("id", id);
-    if(error) throw error;
-    toast("Aluno atualizado", name);
-    await loadAll();
-  }catch(e){
-    toast("Erro", e.message || String(e));
-  }
+  const m = DB.members.find(x=>x.id===id);
+  if(m) openMemberModal(m);
 }
-
+window.editMember = editMember;
 
 async function setMemberStatus(id, status){
   try{
@@ -1502,59 +1671,87 @@ async function setMemberStatus(id, status){
       ? `Cancelar a matrícula de "${m.name}"? (O aluno não contará como atrasado e não receberá cobrança.)`
       : `Reativar a matrícula de "${m.name}"?`;
     if(!confirm(msg)) return;
-
     const { error } = await sb.from("members").update({ status }).eq("id", id);
     if(error) throw error;
-
     toast("Atualizado", `${label}: ${m.name}`);
     await loadAll();
-  }catch(e){
-    toast("Erro", e.message || String(e));
-  }
+  }catch(e){ toast("Erro", e.message || String(e)); }
 }
+window.setMemberStatus = setMemberStatus;
 
 async function deleteMember(id){
   try{
     const m = DB.members.find(x=>x.id===id);
     if(!m) return;
     if(!confirm(`Excluir aluno "${m.name}"?`)) return;
-
     const { error } = await sb.from("members").delete().eq("id", id);
     if(error) throw error;
-
     toast("Aluno excluído", m.name);
     await loadAll();
-  }catch(e){
-    toast("Erro", e.message || String(e));
-  }
+  }catch(e){ toast("Erro", e.message || String(e)); }
 }
+window.deleteMember = deleteMember;
 
-/* =============================
-   USERS (ADMIN) - profiles
-============================= */
+function openMoveModal(id){
+  const m = DB.moves.find(x=>x.id===id);
+  if(!m) return;
+  document.getElementById("editMoveId").value = m.id;
+  document.getElementById("editMovType").value = m.type;
+  document.getElementById("editMovCat").value = m.cat || "";
+  document.getElementById("editMovAmount").value = m.amount || "";
+  document.getElementById("editMovDate").value = m.date || isoToday();
+  document.getElementById("editMovPay").value = m.pay || "Dinheiro";
+  document.getElementById("editMovMember").value = m.memberId || "";
+  document.getElementById("editMovDesc").value = m.desc || "";
+  document.getElementById("editMovNote").value = m.note || "";
+  document.getElementById("moveModal").classList.add("show");
+}
+function closeMoveModal(){ document.getElementById("moveModal").classList.remove("show"); }
+document.getElementById("btnCloseMoveModal").addEventListener("click", closeMoveModal);
+document.getElementById("btnCancelMoveModal").addEventListener("click", closeMoveModal);
+document.getElementById("btnSaveMoveModal").addEventListener("click", async ()=>{
+  try{
+    const id = document.getElementById("editMoveId").value;
+    const payload = {
+      type: document.getElementById("editMovType").value,
+      cat: document.getElementById("editMovCat").value.trim(),
+      amount: Number(document.getElementById("editMovAmount").value),
+      date: document.getElementById("editMovDate").value,
+      pay: document.getElementById("editMovPay").value,
+      member_id: document.getElementById("editMovMember").value || null,
+      description: document.getElementById("editMovDesc").value.trim(),
+      note: document.getElementById("editMovNote").value.trim(),
+    };
+    if(!payload.date || !payload.cat || !payload.description || !(payload.amount > 0)){
+      return toast("Erro", "Preencha categoria, descrição, data e valor.");
+    }
+    const { error } = await sb.from("moves").update(payload).eq("id", id);
+    if(error) throw error;
+    closeMoveModal();
+    toast("Atualizado", "Movimentação alterada com sucesso.");
+    await loadAll();
+  }catch(e){ toast("Erro", e.message || String(e)); }
+});
+window.openMoveModal = openMoveModal;
+
 async function renderUsers(){
   const body = document.getElementById("usersBody");
-  if(!body) return;
   body.innerHTML = "";
-
   if(!isAdmin()){
     body.innerHTML = `<tr><td colspan="5" class="muted">Somente admin.</td></tr>`;
     return;
   }
-
-  // Carrega listagem sempre que abrir a aba users (para refletir mudanças)
   const { data: users, error } = await sb.from("profiles").select("*").order("created_at", {ascending:false});
   if(error){
     body.innerHTML = `<tr><td colspan="5" class="muted">Erro ao carregar usuários.</td></tr>`;
     return;
   }
-
   users.forEach(u=>{
     const roleTag = u.role === "admin" ? `<span class="tag good">Admin</span>` : `<span class="tag">Funcionário</span>`;
     const stTag = u.active ? `<span class="tag good">Ativo</span>` : `<span class="tag bad">Inativo</span>`;
     body.insertAdjacentHTML("beforeend", `
       <tr>
-        <td><b>${u.name || "—"}</b></td>
+        <td><b>${escapeHtml(u.name || "—")}</b></td>
         <td class="muted">—</td>
         <td>${roleTag}</td>
         <td>${stTag}</td>
@@ -1565,132 +1762,81 @@ async function renderUsers(){
       </tr>
     `);
   });
-
-  if(users.length === 0){
-    body.innerHTML = `<tr><td colspan="5" class="muted">Sem usuários.</td></tr>`;
-  }
+  if(users.length === 0) body.innerHTML = `<tr><td colspan="5" class="muted">Sem usuários.</td></tr>`;
 }
-
 window.toggleActive = async function(id, curActive){
   try{
     if(!isAdmin()) return toast("Acesso negado", "Somente admin.");
-    // evita desativar o último admin ativo
     if(curActive){
       const { data: admins, error } = await sb.from("profiles").select("id").eq("role","admin").eq("active", true);
       if(error) throw error;
-      if(admins.length <= 1){
-        const me = currentUserId();
-        if(id === me){
-          return toast("Bloqueado", "Você não pode desativar o último admin (você).");
-        }
-      }
+      if(admins.length <= 1 && id === currentUserId()) return toast("Bloqueado", "Você não pode desativar o último admin (você).");
     }
     const { error } = await sb.from("profiles").update({ active: !curActive }).eq("id", id);
     if(error) throw error;
     toast("Atualizado", "Status atualizado.");
-    await loadAll();
-    await renderUsers();
-  }catch(e){
-    toast("Erro", e.message || String(e));
-  }
+    await loadAll(); await renderUsers();
+  }catch(e){ toast("Erro", e.message || String(e)); }
 }
-
 window.toggleRole = async function(id, curRole){
   try{
     if(!isAdmin()) return toast("Acesso negado", "Somente admin.");
     const next = curRole === "admin" ? "staff" : "admin";
-
-    // evita rebaixar o último admin
     if(curRole === "admin"){
       const { data: admins, error } = await sb.from("profiles").select("id").eq("role","admin").eq("active", true);
       if(error) throw error;
-      if(admins.length <= 1 && admins[0]?.id === id){
-        return toast("Bloqueado", "Você não pode remover o cargo do último admin.");
-      }
+      if(admins.length <= 1 && admins[0]?.id === id) return toast("Bloqueado", "Você não pode remover o cargo do último admin.");
     }
-
     const { error } = await sb.from("profiles").update({ role: next }).eq("id", id);
     if(error) throw error;
     toast("Atualizado", `Cargo alterado para ${next === "admin" ? "Admin" : "Funcionário"}.`);
-    await loadAll();
-    await renderUsers();
-  }catch(e){
-    toast("Erro", e.message || String(e));
-  }
+    await loadAll(); await renderUsers();
+  }catch(e){ toast("Erro", e.message || String(e)); }
 }
 function chargeMemberWA(id){
   const m = DB.members.find(x=>x.id===id);
-  if(!m){ toast("Erro","Aluno não encontrado."); return; }
-  if((m.status||"active")==="canceled"){ toast("Matrícula cancelada","Reative a matrícula para enviar cobrança."); return; }
-  if(!m.phone){ toast("Sem WhatsApp","Cadastre o telefone do aluno."); return; }
+  if(!m) return toast("Erro","Aluno não encontrado.");
+  if((m.status||"active")==="canceled") return toast("Matrícula cancelada","Reative a matrícula para enviar cobrança.");
+  if(!m.phone) return toast("Sem WhatsApp","Cadastre o telefone do aluno.");
   const waPhone = normalizePhoneToWA(m.phone);
-  if(!waPhone){ toast("Telefone inválido","Verifique o telefone do aluno."); return; }
+  if(!waPhone) return toast("Telefone inválido","Verifique o telefone do aluno.");
   const tpl = DB.settings.waTpl || "Olá {nome}, sua mensalidade venceu em {vencimento}. PIX: {pix} • {academia}";
   const msg = encodeURIComponent(waMessage(tpl, m));
-  const url = `https://wa.me/${waPhone}?text=${msg}`;
-  window.open(url, "_blank");
+  window.open(`https://wa.me/${waPhone}?text=${msg}`, "_blank");
 }
+window.chargeMemberWA = chargeMemberWA;
 
-
-
-/* =============================
-   EXPORT CSV (ALL MOVES)
-============================= */
 document.getElementById("btnExportCSV").addEventListener("click", ()=>{
-  const rows = [
-    ["data","tipo","categoria","descricao","aluno","metodo","funcionario","valor","observacao"],
+  const rows = [["data","tipo","categoria","descricao","aluno","metodo","funcionario","valor","observacao"],
     ...DB.moves.map(m=>{
       const mem = DB.members.find(x=>x.id===m.memberId);
-      return [
-        m.date,
-        m.type==="income"?"entrada":"saida",
-        m.cat,
-        (m.desc||"").replaceAll('"','""'),
-        mem?mem.name:"",
-        m.pay,
-        m.staff,
-        String(m.amount).replace(".",","),
-        (m.note||"").replaceAll('"','""'),
-      ];
+      return [m.date, m.type==="income"?"entrada":"saida", m.cat, (m.desc||"").replaceAll('"','""'),
+        mem?mem.name:"", m.pay, m.staff, String(m.amount).replace(".",","), (m.note||"").replaceAll('"','""')];
     })
   ];
   const csv = rows.map(r => r.map(x => `"${String(x)}"`).join(";")).join("\\n");
   const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url;
-  a.download = `movimentacoes_${isoToday()}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  a.href = url; a.download = `movimentacoes_${isoToday()}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   toast("Exportado", "CSV baixado com sucesso.");
 });
 
-/* =============================
-   FILTERS + REPORTS
-============================= */
 document.getElementById("btnApplyFilter").addEventListener("click", renderMovesTable);
 document.getElementById("btnBuildReport").addEventListener("click", renderReport);
 document.getElementById("btnPrint").addEventListener("click", ()=> window.print());
 
-/* =============================
-   SETTINGS (LOCAL)
-============================= */
 document.getElementById("btnSaveSettings").addEventListener("click", ()=>{
-  if(!isAdmin()){
-    toast("Acesso negado", "Somente admin.");
-    return;
-  }
-  const gymName = document.getElementById("setGymName").value.trim() || "Financeiro Completo";
-  const pixKey = document.getElementById("setPixKey").value.trim();
-  const waTpl = document.getElementById("setWaTpl").value.trim() || DB.settings.waTpl;
-  DB.settings.gymName = gymName;
-  DB.settings.pixKey = pixKey;
-  DB.settings.waTpl = waTpl;
-  localStorage.setItem("gym_name_local", gymName);
-  localStorage.setItem("pix_key_local", pixKey);
-  localStorage.setItem("wa_tpl_local", waTpl);
+  if(!isAdmin()) return toast("Acesso negado", "Somente admin.");
+  DB.settings.gymName = document.getElementById("setGymName").value.trim() || "Financeiro Completo";
+  DB.settings.pixKey = document.getElementById("setPixKey").value.trim();
+  DB.settings.waTpl = document.getElementById("setWaTpl").value.trim() || DB.settings.waTpl;
+  DB.settings.autoPayMsg = document.getElementById("setAutoPayMsg").checked;
+  localStorage.setItem("gym_name_local", DB.settings.gymName);
+  localStorage.setItem("pix_key_local", DB.settings.pixKey);
+  localStorage.setItem("wa_tpl_local", DB.settings.waTpl);
+  localStorage.setItem("auto_pay_msg_local", DB.settings.autoPayMsg ? "1" : "0");
   toast("Salvo", "Configurações atualizadas (local).");
   renderAll();
 });
@@ -1698,141 +1844,74 @@ document.getElementById("btnSaveSettings").addEventListener("click", ()=>{
 document.getElementById("btnBackupExport").addEventListener("click", async ()=>{
   try{
     await loadAll();
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      gymName: DB.settings.gymName || "",
-      members: DB.members,
-      moves: DB.moves,
-      cash: DB.cash
-    };
+    const payload = { exportedAt: new Date().toISOString(), gymName: DB.settings.gymName || "", members: DB.members, moves: DB.moves, cash: DB.cash };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `backup_caixa_${isoToday()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    a.href = url; a.download = `backup_caixa_${isoToday()}.json`;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     toast("Backup exportado","Arquivo JSON baixado.");
-  }catch(e){
-    toast("Erro", e.message || String(e));
-  }
+  }catch(e){ toast("Erro", e.message || String(e)); }
 });
-
 document.getElementById("backupFile").addEventListener("change", async (ev)=>{
   try{
     if(!isAdmin()){
       toast("Acesso negado","Somente admin pode importar backup.");
-      ev.target.value = "";
-      return;
+      ev.target.value = ""; return;
     }
     const file = ev.target.files?.[0];
     if(!file) return;
-    const text = await file.text();
-    const data = JSON.parse(text);
-
-    if(!confirm("Importar backup? Isso vai inserir/atualizar alunos e movimentações no Supabase.")){
-      ev.target.value = "";
-      return;
-    }
-
-    // upsert members
+    const data = JSON.parse(await file.text());
+    if(!confirm("Importar backup? Isso vai inserir/atualizar alunos e movimentações no Supabase.")){ ev.target.value = ""; return; }
     if(Array.isArray(data.members) && data.members.length){
-      const { error: e1 } = await sb.from("members").upsert(
-        data.members.map(m=>({
-          id: m.id,
-          name: m.name,
-          phone: m.phone || "",
-          plan: m.plan || "Mensal",
-          due: m.due,
-          notes: m.notes || ""
-        })),
-        { onConflict: "id" }
-      );
+      const { error: e1 } = await sb.from("members").upsert(data.members.map(m=>({
+        id: m.id, name: m.name, phone: m.phone || "", plan: m.plan || "Mensal", due: m.due, notes: m.notes || "", status: m.status || "active"
+      })), { onConflict: "id" });
       if(e1) throw e1;
     }
-
-    // upsert moves
     if(Array.isArray(data.moves) && data.moves.length){
-      const { error: e2 } = await sb.from("moves").upsert(
-        data.moves.map(m=>({
-          id: m.id,
-          type: m.type,
-          cat: m.cat,
-          amount: m.amount,
-          date: m.date,
-          pay: m.pay,
-          member_id: m.memberId || null,
-          description: m.desc,
-          note: m.note || "",
-          staff_name: m.staff || "",
-          staff_user_id: m.staffUserId || null,
-          created_at: m.createdAt || null
-        })),
-        { onConflict: "id" }
-      );
+      const { error: e2 } = await sb.from("moves").upsert(data.moves.map(m=>({
+        id: m.id, type: m.type, cat: m.cat, amount: m.amount, date: m.date, pay: m.pay, member_id: m.memberId || null,
+        description: m.desc, note: m.note || "", staff_name: m.staff || "", staff_user_id: m.staffUserId || null, created_at: m.createdAt || null
+      })), { onConflict: "id" });
       if(e2) throw e2;
     }
-
     toast("Importado","Backup aplicado com sucesso.");
-    await loadAll();
-    renderAll();
-  }catch(e){
-    toast("Erro ao importar", e.message || String(e));
-  }finally{
-    ev.target.value = "";
-  }
+    await loadAll(); renderAll();
+  }catch(e){ toast("Erro ao importar", e.message || String(e)); }
+  finally{ ev.target.value = ""; }
 });
 
-
-/* =============================
-   RENDER
-============================= */
 function fillMemberSelects(){
   const list = DB.members.slice().sort((a,b)=>a.name.localeCompare(b.name));
-  const movMember = document.getElementById("movMember");
-  const fMember = document.getElementById("fMember");
-  const histMember = document.getElementById("histMember");
-
-  const selectedMov = movMember.value;
-  const selectedFilter = fMember.value;
-  const selectedHist = histMember.value;
-
-  const opt = (value, label) => {
+  const selects = [
+    [document.getElementById("movMember"), "—"],
+    [document.getElementById("fMember"), "Todos"],
+    [document.getElementById("histMember"), "—"],
+    [document.getElementById("editMovMember"), "—"]
+  ];
+  selects.forEach(([select, firstLabel])=>{
+    const selected = select.value;
+    select.innerHTML = "";
     const o = document.createElement("option");
-    o.value = value; o.textContent = label;
-    return o;
-  };
-
-  movMember.innerHTML = "";
-  movMember.appendChild(opt("", "—"));
-  fMember.innerHTML = "";
-  fMember.appendChild(opt("", "Todos"));
-  histMember.innerHTML = "";
-  histMember.appendChild(opt("", "—"));
-
-  list.forEach(m=>{
-    movMember.appendChild(opt(m.id, m.name));
-    fMember.appendChild(opt(m.id, m.name));
-    histMember.appendChild(opt(m.id, m.name));
+    o.value = ""; o.textContent = firstLabel;
+    select.appendChild(o);
+    list.forEach(m=>{
+      const opt = document.createElement("option");
+      opt.value = m.id; opt.textContent = m.name;
+      select.appendChild(opt);
+    });
+    select.value = selected;
   });
-
-  movMember.value = selectedMov;
-  fMember.value = selectedFilter;
-  histMember.value = selectedHist;
 }
-
 function getLateMembers(){
   const today = parseISO(isoToday()).getTime();
   return DB.members.filter(m=>{
     if((m.status||"active")==="canceled") return false;
     const due = parseISO(m.due);
-    if(!due) return false;
-    return due.getTime() < today;
+    return due && due.getTime() < today;
   });
 }
-
 function getDashRangeDates(){
   const mode = document.getElementById("dashRange").value;
   const today = isoToday();
@@ -1848,156 +1927,100 @@ function getDashRangeDates(){
   }
   return {from: null, to: null};
 }
-
 document.getElementById("dashRange").addEventListener("change", renderDashboard);
 document.getElementById("dashType").addEventListener("change", renderDashboard);
 
 function renderAll(){
-  // local gym name
   const savedName = localStorage.getItem("gym_name_local");
-  if(savedName && !DB.settings.gymName) DB.settings.gymName = savedName;
+  const savedPix = localStorage.getItem("pix_key_local");
+  const savedTpl = localStorage.getItem("wa_tpl_local");
+  const savedAuto = localStorage.getItem("auto_pay_msg_local");
   if(savedName) DB.settings.gymName = savedName;
+  if(savedPix != null) DB.settings.pixKey = savedPix;
+  if(savedTpl) DB.settings.waTpl = savedTpl;
+  if(savedAuto != null) DB.settings.autoPayMsg = savedAuto === "1";
 
   document.getElementById("gymNameSide").textContent = DB.settings.gymName || "Financeiro Completo";
   document.getElementById("setGymName").value = DB.settings.gymName || "";
+  document.getElementById("setPixKey").value = DB.settings.pixKey || "";
+  document.getElementById("setWaTpl").value = DB.settings.waTpl || "";
+  document.getElementById("setAutoPayMsg").checked = !!DB.settings.autoPayMsg;
 
-  // Admin-only: esconder abas no menu para funcionário
-  const navSettings = document.getElementById("navSettings");
-  if(navSettings) navSettings.classList.toggle("hide", !isAdmin());
-  const navUsers = document.getElementById("navUsers");
-  if(navUsers) navUsers.classList.toggle("hide", !isAdmin());
+  document.getElementById("navSettings")?.classList.toggle("hide", !isAdmin());
+  document.getElementById("navUsers")?.classList.toggle("hide", !isAdmin());
 
-  // Preenche funcionário automaticamente no formulário
   document.getElementById("movStaff").value = currentUserName();
-
-  // cash status
-  const status = cashStatusText();
-  document.getElementById("cashStatusPill").textContent = `Caixa: ${status}`;
+  document.getElementById("cashStatusPill").textContent = `Caixa: ${cashStatusText()}`;
   const tag = document.getElementById("cashTag");
   const tag2 = document.getElementById("cashTag2");
   const openedAt = DB.cash.openedAt ? new Date(DB.cash.openedAt).toLocaleString("pt-BR") : "—";
   document.getElementById("cashOpenedAt").textContent = DB.cash.openedAt ? `Aberto: ${openedAt}` : "—";
   const tText = DB.cash.isOpen ? `🟢 Caixa ABERTO (${DB.cash.openedBy||"—"})` : `🔴 Caixa FECHADO`;
-  tag.textContent = tText;
-  tag2.textContent = tText;
+  tag.textContent = tText; tag2.textContent = tText;
   tag.className = "tag " + (DB.cash.isOpen ? "good" : "bad");
   tag2.className = tag.className;
-
   document.getElementById("btnOpenCash").disabled = DB.cash.isOpen;
   document.getElementById("btnCloseCash").disabled = !DB.cash.isOpen;
-
-  const lockMsg = document.getElementById("cashLockMsg");
-  lockMsg.textContent = DB.cash.isOpen ? "" : "⚠️ Caixa fechado: abra o caixa para registrar movimentações.";
-  document.getElementById("cashHint").textContent = DB.cash.isOpen
-    ? "Caixa aberto: registre entradas e saídas do dia."
-    : "Abra o caixa para registrar movimentações do dia.";
-
-  // set default dates
-  const movDate = document.getElementById("movDate");
-  if(!movDate.value) movDate.value = isoToday();
-
-  // populate member selects
+  document.getElementById("cashLockMsg").textContent = DB.cash.isOpen ? "" : "⚠️ Caixa fechado: abra o caixa para registrar movimentações.";
+  document.getElementById("cashHint").textContent = DB.cash.isOpen ? "Caixa aberto: registre entradas e saídas do dia." : "Abra o caixa para registrar movimentações do dia.";
+  if(!document.getElementById("movDate").value) document.getElementById("movDate").value = isoToday();
   fillMemberSelects();
-
-  // late badge
   const late = getLateMembers();
   const badge = document.getElementById("lateBadge");
-  if(late.length>0){
-    badge.classList.remove("hide");
-    badge.textContent = `${late.length} atrasados`;
-  }else{
-    badge.classList.add("hide");
-  }
+  if(late.length>0){ badge.classList.remove("hide"); badge.textContent = `${late.length} atrasados`; }
+  else badge.classList.add("hide");
 
   renderDashboard();
   renderMovesTable();
   renderMembers();
+  renderReport();
 }
 
 function renderDashboard(){
   const {from,to} = getDashRangeDates();
   const typeFilter = document.getElementById("dashType").value;
-
   const moves = DB.moves.filter(m=>{
     if(!inRange(m.date, from, to)) return false;
     if(typeFilter!=="all" && m.type!==typeFilter) return false;
     return true;
   });
-
   const sumIn = moves.filter(m=>m.type==="income").reduce((a,b)=>a+b.amount,0);
   const sumOut = moves.filter(m=>m.type==="expense").reduce((a,b)=>a+b.amount,0);
   const bal = sumIn - sumOut;
-
   document.getElementById("kpiIn").textContent = moneyBR(sumIn);
   document.getElementById("kpiOut").textContent = moneyBR(sumOut);
   document.getElementById("kpiBal").textContent = moneyBR(bal);
-
   const periodLabel = from && to ? `${fmtDateBR(from)} → ${fmtDateBR(to)}` : "Tudo";
   document.getElementById("kpiInMini").textContent = periodLabel;
   document.getElementById("kpiOutMini").textContent = periodLabel;
   document.getElementById("kpiBalMini").textContent = periodLabel;
+  document.getElementById("kpiLate").textContent = getLateMembers().length;
 
-  const late = getLateMembers();
-  document.getElementById("kpiLate").textContent = late.length;
-
-  // Top categories
   const catMap = new Map();
   moves.forEach(m=>{
     const key = `${m.cat}__${m.type}`;
     catMap.set(key, (catMap.get(key)||0) + m.amount);
   });
-  const catRows = [...catMap.entries()]
-    .map(([k,v])=>{
-      const [cat, type] = k.split("__");
-      return {cat, type, total:v};
-    })
-    .sort((a,b)=>b.total-a.total)
-    .slice(0,8);
+  const catRows = [...catMap.entries()].map(([k,v])=>{
+    const [cat, type] = k.split("__");
+    return {cat, type, total:v};
+  }).sort((a,b)=>b.total-a.total).slice(0,8);
+  fillSimpleTable("topCatsBody", catRows, r=>`
+    <tr>
+      <td>${escapeHtml(r.cat)}</td>
+      <td>${r.type==="income" ? `<span class="tag good">Entrada</span>` : `<span class="tag bad">Saída</span>`}</td>
+      <td class="right mono">${moneyBR(r.total)}</td>
+    </tr>
+  `, 3, "Sem dados no período.");
 
-  const topCatsBody = document.getElementById("topCatsBody");
-  topCatsBody.innerHTML = "";
-  if(catRows.length===0){
-    topCatsBody.innerHTML = `<tr><td colspan="3" class="muted">Sem dados no período.</td></tr>`;
-  }else{
-    catRows.forEach(r=>{
-      const typeTag = r.type==="income"
-        ? `<span class="tag good">Entrada</span>`
-        : `<span class="tag bad">Saída</span>`;
-      topCatsBody.insertAdjacentHTML("beforeend", `
-        <tr>
-          <td>${r.cat}</td>
-          <td>${typeTag}</td>
-          <td class="right mono">${moneyBR(r.total)}</td>
-        </tr>
-      `);
-    });
-  }
+  const payRows = aggregateBy(moves, m=>m.pay).slice(0,8);
+  fillSimpleTable("payMethodsBody", payRows, r=>`
+    <tr>
+      <td>${escapeHtml(r.key)}</td>
+      <td class="right mono">${moneyBR(r.total)}</td>
+    </tr>
+  `, 2, "Sem dados no período.");
 
-  // Pay methods
-  const payMap = new Map();
-  moves.forEach(m=>{
-    payMap.set(m.pay, (payMap.get(m.pay)||0) + m.amount);
-  });
-  const payRows = [...payMap.entries()].map(([pay,total])=>({pay,total}))
-    .sort((a,b)=>b.total-a.total)
-    .slice(0,8);
-
-  const payBody = document.getElementById("payMethodsBody");
-  payBody.innerHTML = "";
-  if(payRows.length===0){
-    payBody.innerHTML = `<tr><td colspan="2" class="muted">Sem dados no período.</td></tr>`;
-  }else{
-    payRows.forEach(r=>{
-      payBody.insertAdjacentHTML("beforeend", `
-        <tr>
-          <td>${r.pay}</td>
-          <td class="right mono">${moneyBR(r.total)}</td>
-        </tr>
-      `);
-    });
-  }
-
-  // last moves
   const lastMovesBody = document.getElementById("lastMovesBody");
   lastMovesBody.innerHTML = "";
   DB.moves.slice(0,8).forEach(m=>{
@@ -2006,22 +2029,12 @@ function renderDashboard(){
     lastMovesBody.insertAdjacentHTML("beforeend", `
       <tr>
         <td class="mono">${fmtDateBR(m.date)}</td>
-        <td>
-          <div style="font-weight:800">${m.desc}</div>
-          <div class="muted">${m.cat} • ${m.pay}</div>
-        </td>
+        <td><div style="font-weight:800">${escapeHtml(m.desc)}</div><div class="muted">${escapeHtml(m.cat)} • ${escapeHtml(m.pay)}</div></td>
         <td class="right mono"><span class="tag ${cls}">${sign} ${moneyBR(m.amount)}</span></td>
       </tr>
     `);
   });
-  if(DB.moves.length===0){
-    lastMovesBody.innerHTML = `<tr><td colspan="3" class="muted">Sem movimentações.</td></tr>`;
-  }
-
-  // cash open info
-  document.getElementById("cashOpenedAt").textContent = DB.cash.openedAt
-    ? `Aberto: ${new Date(DB.cash.openedAt).toLocaleString("pt-BR")}`
-    : "—";
+  if(DB.moves.length===0) lastMovesBody.innerHTML = `<tr><td colspan="3" class="muted">Sem movimentações.</td></tr>`;
 }
 
 function renderMovesTable(){
@@ -2030,62 +2043,44 @@ function renderMovesTable(){
   const type = document.getElementById("fType").value;
   const member = document.getElementById("fMember").value || "";
   const q = (document.getElementById("fSearch").value || "").trim().toLowerCase();
-
   const rows = DB.moves.filter(m=>{
     if(!inRange(m.date, from, to)) return false;
     if(type!=="all" && m.type!==type) return false;
     if(member && m.memberId!==member) return false;
     if(q){
       const mem = DB.members.find(x=>x.id===m.memberId);
-      const hay = [
-        m.cat, m.desc, m.note, m.staff, m.pay,
-        mem?mem.name:""
-      ].join(" ").toLowerCase();
+      const hay = [m.cat, m.desc, m.note, m.staff, m.pay, mem?mem.name:""].join(" ").toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   });
-
   const body = document.getElementById("movTableBody");
   body.innerHTML = "";
   let sumIn=0, sumOut=0;
-
   rows.forEach(m=>{
     const mem = DB.members.find(x=>x.id===m.memberId);
     const t = m.type==="income" ? `<span class="tag good">Entrada</span>` : `<span class="tag bad">Saída</span>`;
-    const valTag = m.type==="income"
-      ? `<span class="tag good mono">+ ${moneyBR(m.amount)}</span>`
-      : `<span class="tag bad mono">− ${moneyBR(m.amount)}</span>`;
-
-    if(m.type==="income") sumIn += m.amount;
-    else sumOut += m.amount;
-
-    const btnDel = isAdmin()
-      ? `<button class="btn danger" onclick="deleteMove('${m.id}')">Excluir</button>`
-      : `<span class="muted">—</span>`;
-
+    const valTag = m.type==="income" ? `<span class="tag good mono">+ ${moneyBR(m.amount)}</span>` : `<span class="tag bad mono">− ${moneyBR(m.amount)}</span>`;
+    if(m.type==="income") sumIn += m.amount; else sumOut += m.amount;
+    const actions = [
+      `<button class="btn" onclick="openMoveModal('${m.id}')">Editar</button>`,
+      isAdmin() ? `<button class="btn danger" onclick="deleteMove('${m.id}')">Excluir</button>` : ``
+    ].join(" ");
     body.insertAdjacentHTML("beforeend", `
       <tr>
         <td class="mono">${fmtDateBR(m.date)}</td>
         <td>${t}</td>
-        <td>${m.cat}</td>
-        <td>
-          <div style="font-weight:800">${m.desc}</div>
-          ${m.note ? `<div class="muted">${m.note}</div>` : `<div class="muted">—</div>`}
-        </td>
-        <td>${mem ? mem.name : "—"}</td>
-        <td>${m.pay}</td>
-        <td>${m.staff || "—"}</td>
+        <td>${escapeHtml(m.cat)}</td>
+        <td><div style="font-weight:800">${escapeHtml(m.desc)}</div>${m.note ? `<div class="muted">${escapeHtml(m.note)}</div>` : `<div class="muted">—</div>`}</td>
+        <td>${mem ? escapeHtml(mem.name) : "—"}</td>
+        <td>${escapeHtml(m.pay)}</td>
+        <td>${escapeHtml(m.staff || "—")}</td>
         <td class="right">${valTag}</td>
-        <td class="right">${btnDel}</td>
+        <td class="right">${actions || `<span class="muted">—</span>`}</td>
       </tr>
     `);
   });
-
-  if(rows.length===0){
-    body.innerHTML = `<tr><td colspan="9" class="muted">Nenhuma movimentação encontrada.</td></tr>`;
-  }
-
+  if(rows.length===0) body.innerHTML = `<tr><td colspan="9" class="muted">Nenhuma movimentação encontrada.</td></tr>`;
   document.getElementById("movCount").textContent = `${rows.length} registro(s) no filtro`;
   document.getElementById("movSumIn").textContent = `Entradas: ${moneyBR(sumIn)}`;
   document.getElementById("movSumOut").textContent = `Saídas: ${moneyBR(sumOut)}`;
@@ -2095,59 +2090,40 @@ function renderMovesTable(){
 function renderMembers(){
   const q = (document.getElementById("mSearch").value || "").trim().toLowerCase();
   const status = document.getElementById("mStatus").value;
-
   const today = parseISO(isoToday()).getTime();
-  const list = DB.members
-    .filter(m=>{
-      const canceled = (m.status || "active") === "canceled";
-      const isLate = !canceled && (parseISO(m.due)?.getTime() < today);
-
-      if(status==="canceled" && !canceled) return false;
-      if(status==="ok" && (canceled || isLate)) return false;
-      if(status==="late" && (canceled || !isLate)) return false;
-
-      if(q){
-        const hay = [m.name,m.phone,m.plan,m.due,m.notes,(m.status||"")].join(" ").toLowerCase();
-        if(!hay.includes(q)) return false;
-      }
-      return true;
-    })
-    .sort((a,b)=>a.name.localeCompare(b.name));
-
+  const list = DB.members.filter(m=>{
+    const canceled = (m.status || "active") === "canceled";
+    const isLate = !canceled && (parseISO(m.due)?.getTime() < today);
+    if(status==="canceled" && !canceled) return false;
+    if(status==="ok" && (canceled || isLate)) return false;
+    if(status==="late" && (canceled || !isLate)) return false;
+    if(q){
+      const hay = [m.name,m.phone,m.plan,m.due,m.notes,(m.status||"")].join(" ").toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=>a.name.localeCompare(b.name));
   const body = document.getElementById("membersBody");
   body.innerHTML = "";
-
   list.forEach(m=>{
     const canceled = (m.status || "active") === "canceled";
     const isLate = !canceled && (parseISO(m.due)?.getTime() < today);
-
-    const st = canceled
-      ? `<span class="tag warn">Cancelado</span>`
-      : (isLate ? `<span class="tag bad">Atrasado</span>` : `<span class="tag good">Em dia</span>`);
-
+    const st = canceled ? `<span class="tag warn">Cancelado</span>` : (isLate ? `<span class="tag bad">Atrasado</span>` : `<span class="tag good">Em dia</span>`);
     const btnCharge = (!canceled && m.phone)
       ? `<button class="btn blue" onclick="chargeMemberWA('${m.id}')">Cobrar</button>`
       : `<button class="btn" disabled style="opacity:.5;cursor:not-allowed">Cobrar</button>`;
-
     const btnToggle = isAdmin()
-      ? (canceled
-          ? `<button class="btn primary" onclick="setMemberStatus('${m.id}','active')">Reativar</button>`
-          : `<button class="btn warn" onclick="setMemberStatus('${m.id}','canceled')">Cancelar</button>`)
+      ? (canceled ? `<button class="btn primary" onclick="setMemberStatus('${m.id}','active')">Reativar</button>`
+                  : `<button class="btn warn" onclick="setMemberStatus('${m.id}','canceled')">Cancelar</button>`)
       : ``;
-
-    const btnDel = isAdmin()
-      ? `<button class="btn danger" onclick="deleteMember('${m.id}')">Excluir</button>`
-      : ``;
+    const btnDel = isAdmin() ? `<button class="btn danger" onclick="deleteMember('${m.id}')">Excluir</button>` : ``;
     body.insertAdjacentHTML("beforeend", `
       <tr>
-        <td>
-          <div style="font-weight:900">${m.name}</div>
-          ${m.notes ? `<div class="muted">${m.notes}</div>` : `<div class="muted">—</div>`}
-        </td>
-        <td>${m.plan || "—"}</td>
+        <td><div style="font-weight:900">${escapeHtml(m.name)}</div>${m.notes ? `<div class="muted">${escapeHtml(m.notes)}</div>` : `<div class="muted">—</div>`}</td>
+        <td>${escapeHtml(m.plan || "—")}</td>
         <td class="mono">${fmtDateBR(m.due)}</td>
         <td>${st}</td>
-        <td>${m.phone || "—"}</td>
+        <td>${escapeHtml(m.phone || "—")}</td>
         <td class="right">
           ${btnCharge}
           <button class="btn" onclick="editMember('${m.id}')">Editar</button>
@@ -2157,10 +2133,7 @@ function renderMembers(){
       </tr>
     `);
   });
-
-  if(list.length===0){
-    body.innerHTML = `<tr><td colspan="6" class="muted">Nenhum aluno encontrado.</td></tr>`;
-  }
+  if(list.length===0) body.innerHTML = `<tr><td colspan="6" class="muted">Nenhum aluno encontrado.</td></tr>`;
 }
 document.getElementById("mSearch").addEventListener("input", renderMembers);
 document.getElementById("mStatus").addEventListener("change", renderMembers);
@@ -2175,123 +2148,78 @@ document.getElementById("btnHistLoad").addEventListener("click", ()=>{
     document.getElementById("histSum").textContent = `Total: ${moneyBR(0)}`;
     return;
   }
-  const rows = DB.moves.filter(m=>m.type==="income" && m.memberId===id)
-    .slice()
-    .sort((a,b)=> parseISO(b.date)-parseISO(a.date));
-
+  const rows = DB.moves.filter(m=>m.type==="income" && m.memberId===id).slice().sort((a,b)=> parseISO(b.date)-parseISO(a.date));
   let sum = 0;
   rows.forEach(m=>{
     sum += m.amount;
     body.insertAdjacentHTML("beforeend", `
       <tr>
         <td class="mono">${fmtDateBR(m.date)}</td>
-        <td>${m.cat}</td>
-        <td>${m.desc}</td>
-        <td>${m.pay}</td>
+        <td>${escapeHtml(m.cat)}</td>
+        <td>${escapeHtml(m.desc)}</td>
+        <td>${escapeHtml(m.pay)}</td>
         <td class="right"><span class="tag good mono">+ ${moneyBR(m.amount)}</span></td>
       </tr>
     `);
   });
-
-  if(rows.length===0){
-    body.innerHTML = `<tr><td colspan="5" class="muted">Sem entradas vinculadas a este aluno.</td></tr>`;
-  }
+  if(rows.length===0) body.innerHTML = `<tr><td colspan="5" class="muted">Sem entradas vinculadas a este aluno.</td></tr>`;
   document.getElementById("histCount").textContent = `${rows.length} entrada(s)`;
   document.getElementById("histSum").textContent = `Total: ${moneyBR(sum)}`;
 });
 
-
 async function generateCloseDayPDF(dayISO){
-  if(!window.jspdf || !window.jspdf.jsPDF){
-    toast("PDF indisponível", "Biblioteca jsPDF não carregou. Verifique sua internet.");
-    return;
-  }
-  // garante dados atuais
+  if(!window.jspdf || !window.jspdf.jsPDF) return toast("PDF indisponível", "Biblioteca jsPDF não carregou. Verifique sua internet.");
   await loadAll();
-
   const movesDay = DB.moves.filter(m => m.date === dayISO);
   const sumIn = movesDay.filter(m=>m.type==="income").reduce((a,b)=>a+Number(b.amount||0),0);
   const sumOut = movesDay.filter(m=>m.type==="expense").reduce((a,b)=>a+Number(b.amount||0),0);
   const bal = sumIn - sumOut;
-
-  const byPay = {};
-  const byPayIn = {};
-  const byPayOut = {};
+  const byPayIn = {}, byPayOut = {};
   movesDay.forEach(m=>{
     const k = m.pay || "—";
-    byPay[k] = (byPay[k]||0) + Number(m.amount||0);
     if(m.type==="income") byPayIn[k] = (byPayIn[k]||0) + Number(m.amount||0);
     else byPayOut[k] = (byPayOut[k]||0) + Number(m.amount||0);
   });
-
   const incomes = movesDay.filter(m=>m.type==="income");
   const expenses = movesDay.filter(m=>m.type==="expense");
-
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({unit:"pt", format:"a4"});
-
   const left = 40;
   let y = 44;
-
   const title = `Fechamento do Dia • ${DB.settings.gymName || "Academia"}`;
-  doc.setFont("helvetica","bold"); doc.setFontSize(14);
-  doc.text(title, left, y); y += 18;
+  doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.text(title, left, y); y += 18;
   doc.setFont("helvetica","normal"); doc.setFontSize(10);
   doc.text(`Data: ${fmtDateBR(dayISO)}   Gerado em: ${new Date().toLocaleString("pt-BR")}`, left, y); y += 16;
   doc.text(`Responsável (logado): ${currentUserName()}`, left, y); y += 18;
-
-  doc.setFont("helvetica","bold"); doc.setFontSize(11);
-  doc.text(`Resumo`, left, y); y += 12;
-  doc.setFont("helvetica","normal"); doc.setFontSize(10);
-  doc.text(`Entradas: ${moneyBR(sumIn)}   Saídas: ${moneyBR(sumOut)}   Saldo: ${moneyBR(bal)}`, left, y); y += 18;
-
+  doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.text(`Resumo`, left, y); y += 12;
+  doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.text(`Entradas: ${moneyBR(sumIn)}   Saídas: ${moneyBR(sumOut)}   Saldo: ${moneyBR(bal)}`, left, y); y += 18;
   doc.setFont("helvetica","bold"); doc.text("Entradas por método", left, y); y += 12;
   doc.setFont("helvetica","normal");
   const payKeys = Object.keys(byPayIn).sort((a,b)=>byPayIn[b]-byPayIn[a]);
   if(payKeys.length===0){ doc.text("—", left, y); y += 14; }
   payKeys.forEach(k=>{ doc.text(`${k}: ${moneyBR(byPayIn[k])}`, left, y); y += 14; });
-
   y += 6;
   doc.setFont("helvetica","bold"); doc.text("Saídas por método", left, y); y += 12;
   doc.setFont("helvetica","normal");
   const payKeys2 = Object.keys(byPayOut).sort((a,b)=>byPayOut[b]-byPayOut[a]);
   if(payKeys2.length===0){ doc.text("—", left, y); y += 14; }
   payKeys2.forEach(k=>{ doc.text(`${k}: ${moneyBR(byPayOut[k])}`, left, y); y += 14; });
-
   y += 10;
   doc.setFont("helvetica","bold"); doc.text(`Movimentações do dia (${movesDay.length})`, left, y); y += 12;
   doc.setFont("helvetica","normal"); doc.setFontSize(9);
-
-  const line = (t)=>{
-    if(y > 760){ doc.addPage(); y = 44; }
-    doc.text(t, left, y); y += 12;
-  };
-
-  // Entradas
-  doc.setFont("helvetica","bold"); doc.setFontSize(10);
-  line("Entradas:");
+  const line = (t)=>{ if(y > 760){ doc.addPage(); y = 44; } doc.text(t, left, y); y += 12; };
+  doc.setFont("helvetica","bold"); doc.setFontSize(10); line("Entradas:");
   doc.setFont("helvetica","normal"); doc.setFontSize(9);
   if(incomes.length===0) line("—");
-  incomes.forEach(m=>{
-    const mem = DB.members.find(x=>x.id===m.memberId) || null;
-    line(`+ ${moneyBR(m.amount)} | ${m.pay} | ${m.cat} | ${mem?mem.name:"—"} | ${m.desc}`);
-  });
-
+  incomes.forEach(m=>{ const mem = DB.members.find(x=>x.id===m.memberId) || null; line(`+ ${moneyBR(m.amount)} | ${m.pay} | ${m.cat} | ${mem?mem.name:"—"} | ${m.desc}`); });
   y += 8;
-  doc.setFont("helvetica","bold"); doc.setFontSize(10);
-  line("Saídas:");
+  doc.setFont("helvetica","bold"); doc.setFontSize(10); line("Saídas:");
   doc.setFont("helvetica","normal"); doc.setFontSize(9);
   if(expenses.length===0) line("—");
-  expenses.forEach(m=>{
-    line(`- ${moneyBR(m.amount)} | ${m.pay} | ${m.cat} | ${m.desc}`);
-  });
-
+  expenses.forEach(m=> line(`- ${moneyBR(m.amount)} | ${m.pay} | ${m.cat} | ${m.desc}`));
   y += 18;
-  doc.setFont("helvetica","normal"); doc.setFontSize(10);
-  line("Assinatura: ________________________________");
-
-  const fileName = `fechamento_${dayISO}_${(DB.settings.gymName||"academia").replace(/\s+/g,'_')}.pdf`;
-  doc.save(fileName);
+  doc.setFont("helvetica","normal"); doc.setFontSize(10); line("Assinatura: ________________________________");
+  doc.save(`fechamento_${dayISO}_${(DB.settings.gymName||"academia").replace(/\s+/g,'_')}.pdf`);
   toast("PDF gerado", "Fechamento do dia baixado.");
 }
 
@@ -2300,73 +2228,105 @@ function renderReport(){
   const to = document.getElementById("rTo").value || null;
   const group = document.getElementById("rGroup").value;
   const type = document.getElementById("rType").value;
-
   const moves = DB.moves.filter(m=>{
     if(!inRange(m.date, from, to)) return false;
     if(type!=="all" && m.type!==type) return false;
     return true;
   });
 
-  const sumIn = moves.filter(m=>m.type==="income").reduce((a,b)=>a+b.amount,0);
-  const sumOut = moves.filter(m=>m.type==="expense").reduce((a,b)=>a+b.amount,0);
+  const incomes = moves.filter(m=>m.type==="income");
+  const expenses = moves.filter(m=>m.type==="expense");
+  const sumIn = incomes.reduce((a,b)=>a+b.amount,0);
+  const sumOut = expenses.reduce((a,b)=>a+b.amount,0);
+  const cashIn = incomes.filter(m=>m.pay==="Dinheiro").reduce((a,b)=>a+b.amount,0);
+  const cashOut = expenses.filter(m=>m.pay==="Dinheiro").reduce((a,b)=>a+b.amount,0);
+  const cashRemainder = cashIn - cashOut;
 
   document.getElementById("rSumIn").textContent = `Entradas: ${moneyBR(sumIn)}`;
   document.getElementById("rSumOut").textContent = `Saídas: ${moneyBR(sumOut)}`;
   document.getElementById("rSumBal").textContent = `Saldo: ${moneyBR(sumIn - sumOut)}`;
   document.getElementById("rCount").textContent = `${moves.length} movimentação(ões) no período`;
+  document.getElementById("rQuickIn").textContent = moneyBR(sumIn);
+  document.getElementById("rQuickOut").textContent = moneyBR(sumOut);
+  document.getElementById("rQuickBal").textContent = moneyBR(sumIn - sumOut);
+  document.getElementById("rQuickCash").textContent = moneyBR(cashRemainder);
+  document.getElementById("rQuickInSub").textContent = `Recebimentos: ${incomes.length}`;
+  document.getElementById("rQuickOutSub").textContent = `Pagamentos: ${expenses.length}`;
+  document.getElementById("rQuickBalSub").textContent = `Saldo operacional do período`;
+  document.getElementById("rQuickCashSub").textContent = `Dinheiro em caixa: ${moneyBR(cashIn)} - ${moneyBR(cashOut)}`;
 
-  const keyOf = (m)=>{
-    if(group==="day") return m.date;
-    if(group==="cat") return m.cat;
-    if(group==="pay") return m.pay;
-    if(group==="staff") return m.staff || "—";
-    return "—";
-  };
-
-  const map = new Map();
+  const keyOf = (m)=> group==="day" ? m.date : group==="cat" ? m.cat : group==="pay" ? m.pay : (m.staff || "—");
+  const grouped = new Map();
   moves.forEach(m=>{
-    const k = `${keyOf(m)}__${m.type}`;
-    const cur = map.get(k) || {group:keyOf(m), type:m.type, total:0, count:0};
-    cur.total += m.amount;
-    cur.count += 1;
-    map.set(k, cur);
+    const key = `${keyOf(m)}__${m.type}`;
+    const cur = grouped.get(key) || {group:keyOf(m), type:m.type, total:0, count:0};
+    cur.total += m.amount; cur.count += 1; grouped.set(key, cur);
   });
+  const rows = [...grouped.values()].sort((a,b)=>b.total-a.total);
+  fillSimpleTable("reportBody", rows, r=>`
+    <tr>
+      <td class="mono">${group==="day" ? fmtDateBR(r.group) : escapeHtml(r.group)}</td>
+      <td>${r.type==="income" ? `<span class="tag good">Entrada</span>` : `<span class="tag bad">Saída</span>`}</td>
+      <td class="right mono">${moneyBR(r.total)}</td>
+      <td class="right mono">${r.count}</td>
+    </tr>
+  `, 4, "Sem dados para o período.");
 
-  const rows = [...map.values()].sort((a,b)=>b.total-a.total);
+  const incomeByPay = aggregateBy(incomes, m=>m.pay);
+  fillSimpleTable("reportIncomeByPay", incomeByPay, r=>`
+    <tr><td>${escapeHtml(r.key)}</td><td class="right mono">${r.count}</td><td class="right mono">${moneyBR(r.total)}</td></tr>
+  `, 3, "Sem entradas no período.");
 
-  const body = document.getElementById("reportBody");
-  body.innerHTML = "";
-  if(rows.length===0){
-    body.innerHTML = `<tr><td colspan="4" class="muted">Sem dados para o período.</td></tr>`;
-    return;
-  }
+  const expenseByPay = aggregateBy(expenses, m=>m.pay);
+  fillSimpleTable("reportExpenseByPay", expenseByPay, r=>`
+    <tr><td>${escapeHtml(r.key)}</td><td class="right mono">${r.count}</td><td class="right mono">${moneyBR(r.total)}</td></tr>
+  `, 3, "Sem saídas no período.");
 
-  rows.forEach(r=>{
-    const t = r.type==="income" ? `<span class="tag good">Entrada</span>` : `<span class="tag bad">Saída</span>`;
-    body.insertAdjacentHTML("beforeend", `
-      <tr>
-        <td class="mono">${group==="day" ? fmtDateBR(r.group) : r.group}</td>
-        <td>${t}</td>
-        <td class="right mono">${moneyBR(r.total)}</td>
-        <td class="right mono">${r.count}</td>
-      </tr>
-    `);
-  });
+  const incomeComposition = aggregateBy(incomes, m=>`${m.cat}__${m.pay}`);
+  fillSimpleTable("reportIncomeComposition", incomeComposition, r=>{
+    const [cat,pay] = r.key.split("__");
+    return `<tr><td>${escapeHtml(cat || "—")}</td><td>${escapeHtml(pay || "—")}</td><td class="right mono">${r.count}</td><td class="right mono">${moneyBR(r.total)}</td></tr>`;
+  }, 4, "Sem composição de entradas.");
+
+  const incomeByCat = aggregateBy(incomes, m=>m.cat);
+  fillSimpleTable("reportIncomeByCat", incomeByCat, r=>`
+    <tr><td>${escapeHtml(r.key)}</td><td class="right mono">${r.count}</td><td class="right mono">${moneyBR(r.total)}</td></tr>
+  `, 3, "Sem entradas por categoria.");
+
+  const expenseByCat = aggregateBy(expenses, m=>m.cat);
+  fillSimpleTable("reportExpenseByCat", expenseByCat, r=>`
+    <tr><td>${escapeHtml(r.key)}</td><td class="right mono">${r.count}</td><td class="right mono">${moneyBR(r.total)}</td></tr>
+  `, 3, "Sem saídas por categoria.");
+
+  const periodText = `${fmtDateBR(from || isoToday())} até ${fmtDateBR(to || isoToday())}`;
+  const topInMethod = incomeByPay[0]?.key || "—";
+  const topOutCat = expenseByCat[0]?.key || "—";
+  document.getElementById("reportPrintSummary").innerHTML = `
+    <h3>${escapeHtml(DB.settings.gymName || "Academia")} • Fechamento gerencial</h3>
+    <p><b>Período:</b> ${periodText}</p>
+    <p><b>Gerado por:</b> ${escapeHtml(currentUserName())}</p>
+    <div class="hr"></div>
+    <h4>Resumo financeiro</h4>
+    <p><b>Entradas totais:</b> ${moneyBR(sumIn)}</p>
+    <p><b>Saídas totais:</b> ${moneyBR(sumOut)}</p>
+    <p><b>Saldo do período:</b> ${moneyBR(sumIn - sumOut)}</p>
+    <p><b>Dinheiro físico em caixa:</b> ${moneyBR(cashRemainder)}</p>
+    <div class="hr"></div>
+    <h4>Leituras rápidas</h4>
+    <p><b>Método que mais recebeu:</b> ${escapeHtml(topInMethod)}</p>
+    <p><b>Maior grupo de despesa:</b> ${escapeHtml(topOutCat)}</p>
+    <p><b>Entradas em espécie:</b> ${moneyBR(cashIn)}</p>
+    <p><b>Saídas em espécie:</b> ${moneyBR(cashOut)}</p>
+    <div class="hr"></div>
+    <h4>Observação gerencial</h4>
+    <p>Saldo do mês = entradas menos saídas. Dinheiro em caixa = entradas em dinheiro menos saídas em dinheiro.</p>
+  `;
 }
 
-/* =============================
-   INIT
-============================= */
 (async function init(){
-  // bloqueia se não setou supabase
-  if(!SUPABASE_URL.includes("http") || SUPABASE_ANON_KEY.includes("COLE_AQUI")){
-    toast("Configuração", "Cole SUPABASE_URL e SUPABASE_ANON_KEY no código.");
-  }
-
-  // tenta restaurar sessão
+  if(!SUPABASE_URL.includes("http") || SUPABASE_ANON_KEY.includes("COLE_AQUI")) toast("Configuração", "Cole SUPABASE_URL e SUPABASE_ANON_KEY no código.");
   const { data } = await sb.auth.getSession();
   const session = data.session;
-
   if(session && session.user){
     try{
       DB.profile = await ensureProfile(session.user);
@@ -2379,17 +2339,9 @@ function renderReport(){
       }
       renderAuth(true);
       await loadAll();
-    }catch(e){
-      renderAuth(false);
-    }
-  } else {
-    renderAuth(false);
-  }
-
+    }catch(e){ renderAuth(false); }
+  } else renderAuth(false);
   setTab("dashboard");
-
-  // se entrar na aba users, renderiza listagem
-  document.getElementById("navUsers")?.addEventListener("click", ()=> setTimeout(()=>renderUsers(), 50));
 })();
 </script>
 </body>
