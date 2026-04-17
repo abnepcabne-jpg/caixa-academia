@@ -794,8 +794,8 @@
               <input id="setPixKey" placeholder="Ex: 79999991111 ou email@pix.com"/>
             </div>
             <div class="field" style="min-width:320px">
-              <label>Mensagem WhatsApp (modelo)</label>
-              <input id="setWaTpl" placeholder="Olá {nome}, sua mensalidade venceu em {vencimento}. PIX: {pix} • {academia}"/>
+              <label>Mensagem WhatsApp (cobrança)</label>
+              <input id="setWaTpl" placeholder="Olá {nome}, tudo bem? Sua mensalidade venceu em {vencimento}. PIX: {pix} • {academia}"/>
             </div>
 
             <div class="field" style="min-width:200px">
@@ -1086,7 +1086,7 @@
       <div class="grid">
         <div class="card" style="grid-column:span 12">
           <div style="font-weight:900">Configurações</div>
-          <div class="muted">Somente admin pode ver e alterar (local).</div>
+          <div class="muted">Somente admin pode ver e alterar (local). Use {nome}, {vencimento}, {pix}, {academia}, {valor}, {data}, {metodo} e {categoria} nas mensagens.</div>
           <div class="hr"></div>
 
           <div class="row">
@@ -1095,11 +1095,19 @@
               <input id="setGymName" placeholder="Ex: Academia Alpha"/>
             </div>
             <div class="field" style="min-width:260px">
-              <label>Mensagem automática de pagamento</label>
+              <label>Comprovante automático no WhatsApp</label>
               <div class="switch">
                 <input id="setAutoPayMsg" type="checkbox" style="width:auto"/>
-                <span>Abrir WhatsApp após registrar pagamento</span>
+                <span>Abrir WhatsApp com comprovante após registrar pagamento</span>
               </div>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <div class="field" style="min-width:100%">
+              <label>Mensagem de confirmação de pagamento</label>
+              <textarea id="setPayTpl" placeholder="Olá {nome}, tudo certo? Recebemos seu pagamento com sucesso!"></textarea>
+              <div class="muted">Variáveis disponíveis: {nome}, {valor}, {data}, {metodo}, {categoria}, {academia}</div>
             </div>
           </div>
 
@@ -1371,9 +1379,9 @@ let DB = {
   settings: {
     gymName: "Financeiro Completo",
     pixKey: "",
-    waTpl: "Olá {nome}, sua mensalidade venceu em {vencimento}. PIX: {pix} • {academia}",
+    waTpl: "Olá {nome}, tudo bem? 👋\n\nVerificamos que sua mensalidade venceu em {vencimento}.\n\nPara continuar treinando normalmente, pedimos que regularize o pagamento o quanto antes 🙏\n\n💰 PIX: {pix}\n\nSe já realizou o pagamento, por favor desconsidere esta mensagem.\n\nQualquer dúvida, estamos à disposição!\n{academia}",
     autoPayMsg: false,
-    payTpl: "Olá {nome}, confirmamos o pagamento de {valor} em {data} via {metodo}. Obrigado por treinar na {academia}."
+    payTpl: "Olá {nome}, tudo certo? 👊\n\nRecebemos seu pagamento com sucesso!\n\n📅 Data: {data}\n💰 Valor: {valor}\n💳 Forma: {metodo}\n📌 Referente a: {categoria}\n\nObrigado por treinar com a gente 💪\n{academia}"
   },
   profile: null,
   cash: { isOpen:false, openedAt:null, closedAt:null, openedBy:null, closedBy:null },
@@ -1800,7 +1808,7 @@ function chargeMemberWA(id){
   if(!m.phone) return toast("Sem WhatsApp","Cadastre o telefone do aluno.");
   const waPhone = normalizePhoneToWA(m.phone);
   if(!waPhone) return toast("Telefone inválido","Verifique o telefone do aluno.");
-  const tpl = DB.settings.waTpl || "Olá {nome}, sua mensalidade venceu em {vencimento}. PIX: {pix} • {academia}";
+  const tpl = DB.settings.waTpl || "Olá {nome}, tudo bem? 👋\n\nVerificamos que sua mensalidade venceu em {vencimento}.\n\nPara continuar treinando normalmente, pedimos que regularize o pagamento o quanto antes 🙏\n\n💰 PIX: {pix}\n\nSe já realizou o pagamento, por favor desconsidere esta mensagem.\n\nQualquer dúvida, estamos à disposição!\n{academia}";
   const msg = encodeURIComponent(waMessage(tpl, m));
   window.open(`https://wa.me/${waPhone}?text=${msg}`, "_blank");
 }
@@ -1832,10 +1840,12 @@ document.getElementById("btnSaveSettings").addEventListener("click", ()=>{
   DB.settings.gymName = document.getElementById("setGymName").value.trim() || "Financeiro Completo";
   DB.settings.pixKey = document.getElementById("setPixKey").value.trim();
   DB.settings.waTpl = document.getElementById("setWaTpl").value.trim() || DB.settings.waTpl;
+  DB.settings.payTpl = document.getElementById("setPayTpl").value.trim() || DB.settings.payTpl;
   DB.settings.autoPayMsg = document.getElementById("setAutoPayMsg").checked;
   localStorage.setItem("gym_name_local", DB.settings.gymName);
   localStorage.setItem("pix_key_local", DB.settings.pixKey);
   localStorage.setItem("wa_tpl_local", DB.settings.waTpl);
+  localStorage.setItem("pay_tpl_local", DB.settings.payTpl);
   localStorage.setItem("auto_pay_msg_local", DB.settings.autoPayMsg ? "1" : "0");
   toast("Salvo", "Configurações atualizadas (local).");
   renderAll();
@@ -1934,16 +1944,20 @@ function renderAll(){
   const savedName = localStorage.getItem("gym_name_local");
   const savedPix = localStorage.getItem("pix_key_local");
   const savedTpl = localStorage.getItem("wa_tpl_local");
+  const savedPayTpl = localStorage.getItem("pay_tpl_local");
   const savedAuto = localStorage.getItem("auto_pay_msg_local");
   if(savedName) DB.settings.gymName = savedName;
   if(savedPix != null) DB.settings.pixKey = savedPix;
   if(savedTpl) DB.settings.waTpl = savedTpl;
+  if(savedPayTpl) DB.settings.payTpl = savedPayTpl;
   if(savedAuto != null) DB.settings.autoPayMsg = savedAuto === "1";
 
   document.getElementById("gymNameSide").textContent = DB.settings.gymName || "Financeiro Completo";
   document.getElementById("setGymName").value = DB.settings.gymName || "";
   document.getElementById("setPixKey").value = DB.settings.pixKey || "";
   document.getElementById("setWaTpl").value = DB.settings.waTpl || "";
+  const payTplField = document.getElementById("setPayTpl");
+  if(payTplField) payTplField.value = DB.settings.payTpl || "";
   document.getElementById("setAutoPayMsg").checked = !!DB.settings.autoPayMsg;
 
   document.getElementById("navSettings")?.classList.toggle("hide", !isAdmin());
