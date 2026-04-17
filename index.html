@@ -1304,6 +1304,7 @@ function normalizePhoneToWA(phone){
   return d;
 }
 function waMessage(tpl, member){
+  tpl = cleanTemplateText(tpl, DEFAULT_WA_TPL);
   const acad = DB.settings.gymName || "Academia";
   const pix = DB.settings.pixKey || "—";
   return (tpl||"").replaceAll("{nome}", member?.name||"")
@@ -1312,6 +1313,7 @@ function waMessage(tpl, member){
                   .replaceAll("{pix}", pix);
 }
 function paymentWaMessage(tpl, member, move){
+  tpl = cleanTemplateText(tpl, DEFAULT_PAY_TPL);
   const acad = DB.settings.gymName || "Academia";
   return (tpl||"").replaceAll("{nome}", member?.name||"")
                   .replaceAll("{valor}", moneyBR(move?.amount || 0))
@@ -1375,13 +1377,23 @@ function fillSimpleTable(tbodyId, rows, renderRow, colspan, emptyText){
   rows.forEach(r=> body.insertAdjacentHTML("beforeend", renderRow(r)));
 }
 
+const DEFAULT_WA_TPL = "Olá {nome}, tudo bem? \u{1F44B}\n\nVerificamos que sua mensalidade venceu em {vencimento}.\n\nPara continuar treinando normalmente, pedimos que regularize o pagamento o quanto antes \u{1F64F}\n\n\u{1F4B0} PIX: {pix}\n\nSe já realizou o pagamento, por favor desconsidere esta mensagem.\n\nQualquer dúvida, estamos à disposição!\n{academia}";
+const DEFAULT_PAY_TPL = "Olá {nome}, tudo certo? \u{1F44A}\n\nRecebemos seu pagamento com sucesso!\n\n\u{1F4C5} Data: {data}\n\u{1F4B0} Valor: {valor}\n\u{1F4B3} Forma: {metodo}\n\u{1F4CC} Referente a: {categoria}\n\nObrigado por treinar com a gente \u{1F4AA}\n{academia}";
+
+function cleanTemplateText(text, fallback){
+  const val = String(text || "").trim();
+  if(!val) return fallback;
+  if(val.includes("�")) return fallback;
+  return val;
+}
+
 let DB = {
   settings: {
     gymName: "Financeiro Completo",
     pixKey: "",
-    waTpl: "Olá {nome}, tudo bem? 👋\n\nVerificamos que sua mensalidade venceu em {vencimento}.\n\nPara continuar treinando normalmente, pedimos que regularize o pagamento o quanto antes 🙏\n\n💰 PIX: {pix}\n\nSe já realizou o pagamento, por favor desconsidere esta mensagem.\n\nQualquer dúvida, estamos à disposição!\n{academia}",
+    waTpl: DEFAULT_WA_TPL,
     autoPayMsg: false,
-    payTpl: "Olá {nome}, tudo certo? 👊\n\nRecebemos seu pagamento com sucesso!\n\n📅 Data: {data}\n💰 Valor: {valor}\n💳 Forma: {metodo}\n📌 Referente a: {categoria}\n\nObrigado por treinar com a gente 💪\n{academia}"
+    payTpl: DEFAULT_PAY_TPL
   },
   profile: null,
   cash: { isOpen:false, openedAt:null, closedAt:null, openedBy:null, closedBy:null },
@@ -1808,7 +1820,7 @@ function chargeMemberWA(id){
   if(!m.phone) return toast("Sem WhatsApp","Cadastre o telefone do aluno.");
   const waPhone = normalizePhoneToWA(m.phone);
   if(!waPhone) return toast("Telefone inválido","Verifique o telefone do aluno.");
-  const tpl = DB.settings.waTpl || "Olá {nome}, tudo bem? 👋\n\nVerificamos que sua mensalidade venceu em {vencimento}.\n\nPara continuar treinando normalmente, pedimos que regularize o pagamento o quanto antes 🙏\n\n💰 PIX: {pix}\n\nSe já realizou o pagamento, por favor desconsidere esta mensagem.\n\nQualquer dúvida, estamos à disposição!\n{academia}";
+  const tpl = cleanTemplateText(DB.settings.waTpl, DEFAULT_WA_TPL);
   const msg = encodeURIComponent(waMessage(tpl, m));
   window.open(`https://wa.me/${waPhone}?text=${msg}`, "_blank");
 }
@@ -1839,8 +1851,8 @@ document.getElementById("btnSaveSettings").addEventListener("click", ()=>{
   if(!isAdmin()) return toast("Acesso negado", "Somente admin.");
   DB.settings.gymName = document.getElementById("setGymName").value.trim() || "Financeiro Completo";
   DB.settings.pixKey = document.getElementById("setPixKey").value.trim();
-  DB.settings.waTpl = document.getElementById("setWaTpl").value.trim() || DB.settings.waTpl;
-  DB.settings.payTpl = document.getElementById("setPayTpl").value.trim() || DB.settings.payTpl;
+  DB.settings.waTpl = cleanTemplateText(document.getElementById("setWaTpl").value, DEFAULT_WA_TPL);
+  DB.settings.payTpl = cleanTemplateText(document.getElementById("setPayTpl").value, DEFAULT_PAY_TPL);
   DB.settings.autoPayMsg = document.getElementById("setAutoPayMsg").checked;
   localStorage.setItem("gym_name_local", DB.settings.gymName);
   localStorage.setItem("pix_key_local", DB.settings.pixKey);
@@ -1948,16 +1960,16 @@ function renderAll(){
   const savedAuto = localStorage.getItem("auto_pay_msg_local");
   if(savedName) DB.settings.gymName = savedName;
   if(savedPix != null) DB.settings.pixKey = savedPix;
-  if(savedTpl) DB.settings.waTpl = savedTpl;
-  if(savedPayTpl) DB.settings.payTpl = savedPayTpl;
+  if(savedTpl) DB.settings.waTpl = cleanTemplateText(savedTpl, DEFAULT_WA_TPL);
+  if(savedPayTpl) DB.settings.payTpl = cleanTemplateText(savedPayTpl, DEFAULT_PAY_TPL);
   if(savedAuto != null) DB.settings.autoPayMsg = savedAuto === "1";
 
   document.getElementById("gymNameSide").textContent = DB.settings.gymName || "Financeiro Completo";
   document.getElementById("setGymName").value = DB.settings.gymName || "";
   document.getElementById("setPixKey").value = DB.settings.pixKey || "";
-  document.getElementById("setWaTpl").value = DB.settings.waTpl || "";
+  document.getElementById("setWaTpl").value = cleanTemplateText(DB.settings.waTpl, DEFAULT_WA_TPL);
   const payTplField = document.getElementById("setPayTpl");
-  if(payTplField) payTplField.value = DB.settings.payTpl || "";
+  if(payTplField) payTplField.value = cleanTemplateText(DB.settings.payTpl, DEFAULT_PAY_TPL);
   document.getElementById("setAutoPayMsg").checked = !!DB.settings.autoPayMsg;
 
   document.getElementById("navSettings")?.classList.toggle("hide", !isAdmin());
