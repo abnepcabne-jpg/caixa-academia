@@ -795,13 +795,8 @@
             </div>
             <div class="field" style="min-width:320px">
               <label>Mensagem WhatsApp (cobrança)</label>
-              <input id="setWaTpl" placeholder=Olá {nome}, tudo bem?
-                Verificamos que sua mensalidade venceu em {vencimento}.
-                Para continuar treinando normalmente, pedimos que regularize o pagamento o quanto antes.
-                PIX: {pix}
-                Se já realizou o pagamento, por favor desconsidere esta mensagem.
-                Qualquer dúvida, estamos à disposição.
-            {academia}/>
+              <textarea id="setWaTpl" placeholder="Mensagem de cobrança automática. Use {nome}, {vencimento}, {pix} e {academia}."></textarea>
+              <div class="muted">Use Enter para quebrar linhas. Variáveis: {nome}, {vencimento}, {pix}, {academia}</div>
             </div>
 
             <div class="field" style="min-width:200px">
@@ -1317,13 +1312,16 @@ function defaultLateTemplate(){
   return [
     `Olá {nome}, tudo bem? ${emoji(0x1F44B)}`,
     ``,
-    `Verificamos que sua mensalidade venceu em {vencimento}.`,
+    `Passando para te avisar que sua mensalidade venceu em {vencimento}.`,
     ``,
-    `Para continuar treinando normalmente, pedimos que regularize o pagamento o quanto antes ${emoji(0x1F64F)}`,
+    `Para que você continue treinando normalmente e sem interrupções, é importante realizar a regularização o quanto antes.`,
     ``,
-    `${emoji(0x1F4B0)} PIX: {pix}`,
+    `${emoji(0x1F4B0)} Forma de pagamento:`,
+    `PIX: {pix}`,
     ``,
-    `Se já realizou o pagamento, por favor desconsidere esta mensagem.`,
+    `Assim que o pagamento for realizado, seu acesso permanece liberado normalmente.`,
+    ``,
+    `Caso já tenha feito o pagamento, pode desconsiderar esta mensagem ${emoji(0x1F609)}`,
     ``,
     `Qualquer dúvida, estamos à disposição!`,
     `{academia}`
