@@ -359,6 +359,44 @@
     }
     .toast b{display:block; font-size:13px}
     .toast span{display:block; margin-top:2px; color:var(--muted); font-size:12px}
+
+    .chartBox{
+      height:280px;
+      position:relative;
+      background:rgba(2,6,23,.22);
+      border:1px solid rgba(148,163,184,.10);
+      border-radius:18px;
+      padding:12px;
+    }
+    .progressTrack{
+      width:100%; height:12px; border-radius:999px;
+      background:rgba(148,163,184,.16);
+      overflow:hidden; margin-top:10px;
+      border:1px solid rgba(148,163,184,.12);
+    }
+    .progressFill{
+      height:100%; width:0%; border-radius:999px;
+      background:linear-gradient(90deg, rgba(34,197,94,.85), rgba(59,130,246,.85));
+      transition:.25s;
+    }
+    .fabWrap{
+      position:fixed; right:18px; bottom:92px; z-index:80;
+      display:flex; flex-direction:column; gap:10px; align-items:flex-end;
+    }
+    .fabMenu{display:none; flex-direction:column; gap:8px;}
+    .fabMenu.show{display:flex;}
+    .fabAction{
+      border:none; cursor:pointer; color:var(--text); font-weight:900;
+      background:rgba(15,31,58,.94); border:1px solid rgba(148,163,184,.18);
+      border-radius:999px; padding:10px 14px; box-shadow:var(--shadow);
+    }
+    .fabMain{
+      width:58px; height:58px; border-radius:22px;
+      border:none; cursor:pointer; color:white; font-size:28px; font-weight:900;
+      background:linear-gradient(135deg, rgba(34,197,94,.95), rgba(59,130,246,.95));
+      box-shadow:var(--shadow);
+    }
+
     @media print{
       body{background:#fff;color:#000}
       .sidebar,.topbar,.bottomNav,.toast,.modal{display:none !important}
@@ -373,6 +411,7 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -519,6 +558,53 @@
               <div class="mini">vencimento antes de hoje</div>
             </div>
           </div>
+        </div>
+
+        <div class="card" style="grid-column:span 4">
+          <div style="font-weight:900">Meta mensal</div>
+          <div class="muted">Acompanhe quanto falta para bater a meta</div>
+          <div class="hr"></div>
+          <div class="miniCard">
+            <div class="lbl">Faturado no mês</div>
+            <div class="big" id="goalCurrent">R$ 0,00</div>
+            <div class="subline" id="goalText">Meta não configurada</div>
+            <div class="progressTrack"><div class="progressFill" id="goalBar"></div></div>
+          </div>
+        </div>
+
+        <div class="card" style="grid-column:span 4">
+          <div style="font-weight:900">Indicadores executivos</div>
+          <div class="muted">Visão rápida para decisão</div>
+          <div class="hr"></div>
+          <div class="quickStats" style="grid-template-columns:1fr 1fr">
+            <div class="miniCard"><div class="lbl">Ticket médio</div><div class="big" id="execTicket">R$ 0,00</div><div class="subline">por entrada</div></div>
+            <div class="miniCard"><div class="lbl">Novos alunos</div><div class="big" id="execNewMembers">0</div><div class="subline">cadastros do mês*</div></div>
+          </div>
+          <div class="muted" style="margin-top:8px">*Estimativa com os alunos ativos cadastrados.</div>
+        </div>
+
+        <div class="card" style="grid-column:span 4">
+          <div style="font-weight:900">Fluxo projetado</div>
+          <div class="muted">Previsão baseada na média dos últimos meses</div>
+          <div class="hr"></div>
+          <table class="table">
+            <thead><tr><th>Mês</th><th class="right">Previsto</th></tr></thead>
+            <tbody id="forecastBody"></tbody>
+          </table>
+        </div>
+
+        <div class="card" style="grid-column:span 8">
+          <div style="font-weight:900">Receitas x Despesas</div>
+          <div class="muted">Evolução dos últimos meses</div>
+          <div class="hr"></div>
+          <div class="chartBox"><canvas id="financeChart"></canvas></div>
+        </div>
+
+        <div class="card" style="grid-column:span 4">
+          <div style="font-weight:900">Métodos de pagamento</div>
+          <div class="muted">Composição do período selecionado</div>
+          <div class="hr"></div>
+          <div class="chartBox"><canvas id="payChart"></canvas></div>
         </div>
 
         <div class="card" style="grid-column:span 8">
@@ -808,6 +894,17 @@
                 <option value="canceled">Cancelados</option>
               </select>
             </div>
+            <div class="field" style="min-width:200px">
+              <label>Vencimento</label>
+              <select id="mDueFilter">
+                <option value="all">Todos</option>
+                <option value="late">Em atraso</option>
+                <option value="today">Vence hoje</option>
+                <option value="tomorrow">Vence amanhã</option>
+                <option value="7">Próximos 7 dias</option>
+              </select>
+            </div>
+            <button class="btn blue" id="btnChargeVisible" style="align-self:flex-end">Cobrar filtrados</button>
           </div>
 
           <div class="hr"></div>
@@ -1095,6 +1192,10 @@
               <label>Nome da academia (local)</label>
               <input id="setGymName" placeholder="Ex: Academia Alpha"/>
             </div>
+            <div class="field" style="min-width:200px">
+              <label>Meta mensal de faturamento</label>
+              <input id="setMonthlyGoal" type="number" step="0.01" placeholder="Ex: 15000"/>
+            </div>
             <div class="field" style="min-width:260px">
               <label>Comprovante automático no WhatsApp</label>
               <div class="switch">
@@ -1147,6 +1248,15 @@
     <button data-tab="reports">🧾<span>Relat.</span></button>
     <button data-tab="settings">⚙️<span>Config</span></button>
   </nav>
+
+  <div class="fabWrap">
+    <div class="fabMenu" id="fabMenu">
+      <button class="fabAction" onclick="quickNewIncome()">+ Receita</button>
+      <button class="fabAction" onclick="quickNewExpense()">− Despesa</button>
+      <button class="fabAction" onclick="setTab('members'); openMemberModal()">+ Aluno</button>
+    </div>
+    <button class="fabMain" id="fabMain" title="Ações rápidas">+</button>
+  </div>
 
 </section>
 
@@ -1434,7 +1544,8 @@ let DB = {
     pixKey: "",
     waTpl: defaultLateTemplate(),
     autoPayMsg: false,
-    payTpl: defaultPayTemplate()
+    payTpl: defaultPayTemplate(),
+    monthlyGoal: 0
   },
   profile: null,
   cash: { isOpen:false, openedAt:null, closedAt:null, openedBy:null, closedBy:null },
@@ -1893,6 +2004,7 @@ document.getElementById("btnPrint").addEventListener("click", ()=> window.print(
 document.getElementById("btnSaveSettings").addEventListener("click", ()=>{
   if(!isAdmin()) return toast("Acesso negado", "Somente admin.");
   DB.settings.gymName = document.getElementById("setGymName").value.trim() || "Financeiro Completo";
+  DB.settings.monthlyGoal = Number(document.getElementById("setMonthlyGoal")?.value || 0);
   DB.settings.pixKey = document.getElementById("setPixKey").value.trim();
   DB.settings.waTpl = sanitizeTemplate(document.getElementById("setWaTpl").value, defaultLateTemplate);
   DB.settings.payTpl = sanitizeTemplate(document.getElementById("setPayTpl").value, defaultPayTemplate);
@@ -1902,6 +2014,7 @@ document.getElementById("btnSaveSettings").addEventListener("click", ()=>{
   localStorage.setItem("wa_tpl_local", DB.settings.waTpl);
   localStorage.setItem("pay_tpl_local", DB.settings.payTpl);
   localStorage.setItem("auto_pay_msg_local", DB.settings.autoPayMsg ? "1" : "0");
+  localStorage.setItem("monthly_goal_local", String(DB.settings.monthlyGoal || 0));
   toast("Salvo", "Configurações atualizadas (local).");
   renderAll();
 });
@@ -2001,14 +2114,18 @@ function renderAll(){
   const savedTpl = localStorage.getItem("wa_tpl_local");
   const savedPayTpl = localStorage.getItem("pay_tpl_local");
   const savedAuto = localStorage.getItem("auto_pay_msg_local");
+  const savedGoal = localStorage.getItem("monthly_goal_local");
   if(savedName) DB.settings.gymName = savedName;
   if(savedPix != null) DB.settings.pixKey = savedPix;
   DB.settings.waTpl = sanitizeTemplate(savedTpl || DB.settings.waTpl, defaultLateTemplate);
   DB.settings.payTpl = sanitizeTemplate(savedPayTpl || DB.settings.payTpl, defaultPayTemplate);
   if(savedAuto != null) DB.settings.autoPayMsg = savedAuto === "1";
+  if(savedGoal != null) DB.settings.monthlyGoal = Number(savedGoal || 0);
 
   document.getElementById("gymNameSide").textContent = DB.settings.gymName || "Financeiro Completo";
   document.getElementById("setGymName").value = DB.settings.gymName || "";
+  const goalField = document.getElementById("setMonthlyGoal");
+  if(goalField) goalField.value = DB.settings.monthlyGoal || "";
   document.getElementById("setPixKey").value = DB.settings.pixKey || "";
   document.getElementById("setWaTpl").value = sanitizeTemplate(DB.settings.waTpl, defaultLateTemplate);
   const payTplField = document.getElementById("setPayTpl");
@@ -2044,6 +2161,109 @@ function renderAll(){
   renderMembers();
   renderReport();
 }
+
+let financeChartInstance = null;
+let payChartInstance = null;
+function monthKey(iso){ return iso ? iso.slice(0,7) : "—"; }
+function monthLabel(key){
+  if(!key || key === "—") return "—";
+  const [y,m] = key.split("-").map(Number);
+  return new Date(y, m-1, 1).toLocaleDateString("pt-BR", {month:"short", year:"2-digit"});
+}
+function getLastMonthKeys(total=6){
+  const base = parseISO(isoToday());
+  const keys = [];
+  for(let i=total-1; i>=0; i--){
+    const d = new Date(base.getFullYear(), base.getMonth()-i, 1);
+    keys.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`);
+  }
+  return keys;
+}
+function renderExecutiveWidgets(periodMoves){
+  const currentMonth = monthKey(isoToday());
+  const monthMoves = DB.moves.filter(m=>monthKey(m.date)===currentMonth);
+  const monthIncome = monthMoves.filter(m=>m.type==="income").reduce((a,b)=>a+b.amount,0);
+  const goal = Number(DB.settings.monthlyGoal || 0);
+  const percent = goal > 0 ? Math.min(100, Math.round((monthIncome/goal)*100)) : 0;
+  document.getElementById("goalCurrent").textContent = moneyBR(monthIncome);
+  document.getElementById("goalText").textContent = goal > 0 ? `${percent}% da meta de ${moneyBR(goal)}` : "Configure a meta em Configurações";
+  document.getElementById("goalBar").style.width = `${percent}%`;
+  const incomes = periodMoves.filter(m=>m.type==="income");
+  const ticket = incomes.length ? incomes.reduce((a,b)=>a+b.amount,0)/incomes.length : 0;
+  document.getElementById("execTicket").textContent = moneyBR(ticket);
+  document.getElementById("execNewMembers").textContent = DB.members.filter(m=>(m.status||"active")!=="canceled").length;
+
+  const lastKeys = getLastMonthKeys(3);
+  const avgIncome = lastKeys.map(k=>DB.moves.filter(m=>monthKey(m.date)===k && m.type==="income").reduce((a,b)=>a+b.amount,0));
+  const avg = avgIncome.length ? avgIncome.reduce((a,b)=>a+b,0)/avgIncome.length : 0;
+  const body = document.getElementById("forecastBody");
+  body.innerHTML = "";
+  const base = parseISO(isoToday());
+  for(let i=1; i<=3; i++){
+    const d = new Date(base.getFullYear(), base.getMonth()+i, 1);
+    const label = d.toLocaleDateString("pt-BR", {month:"long", year:"numeric"});
+    body.insertAdjacentHTML("beforeend", `<tr><td>${label}</td><td class="right mono">${moneyBR(avg)}</td></tr>`);
+  }
+}
+function renderCharts(periodMoves){
+  if(!window.Chart) return;
+  const keys = getLastMonthKeys(6);
+  const labels = keys.map(monthLabel);
+  const incomes = keys.map(k=>DB.moves.filter(m=>monthKey(m.date)===k && m.type==="income").reduce((a,b)=>a+b.amount,0));
+  const expenses = keys.map(k=>DB.moves.filter(m=>monthKey(m.date)===k && m.type==="expense").reduce((a,b)=>a+b.amount,0));
+  const ctx = document.getElementById("financeChart")?.getContext("2d");
+  if(ctx){
+    if(financeChartInstance) financeChartInstance.destroy();
+    financeChartInstance = new Chart(ctx, {type:"bar", data:{labels, datasets:[{label:"Entradas", data:incomes},{label:"Saídas", data:expenses}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:"#e5e7eb"}}}, scales:{x:{ticks:{color:"#94a3b8"}}, y:{ticks:{color:"#94a3b8"}}}}});
+  }
+  const payRows = aggregateBy(periodMoves, m=>m.pay).slice(0,6);
+  const ctxPay = document.getElementById("payChart")?.getContext("2d");
+  if(ctxPay){
+    if(payChartInstance) payChartInstance.destroy();
+    payChartInstance = new Chart(ctxPay, {type:"doughnut", data:{labels:payRows.map(x=>x.key), datasets:[{data:payRows.map(x=>x.total)}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:"bottom", labels:{color:"#e5e7eb"}}}}});
+  }
+}
+function memberPassesDueFilter(m, dueFilter){
+  if(dueFilter === "all") return true;
+  const due = parseISO(m.due);
+  if(!due) return false;
+  const todayISO = isoToday();
+  const today = parseISO(todayISO).getTime();
+  const dueTime = due.getTime();
+  if(dueFilter === "late") return dueTime < today;
+  if(dueFilter === "today") return m.due === todayISO;
+  if(dueFilter === "tomorrow") return m.due === shiftISO(todayISO, 1);
+  if(dueFilter === "7") return dueTime >= today && dueTime <= parseISO(shiftISO(todayISO, 7)).getTime();
+  return true;
+}
+function getVisibleChargeMembers(){
+  const q = (document.getElementById("mSearch")?.value || "").trim().toLowerCase();
+  const status = document.getElementById("mStatus")?.value || "all";
+  const dueFilter = document.getElementById("mDueFilter")?.value || "all";
+  const today = parseISO(isoToday()).getTime();
+  return DB.members.filter(m=>{
+    const canceled = (m.status || "active") === "canceled";
+    const isLate = !canceled && (parseISO(m.due)?.getTime() < today);
+    if(canceled) return false;
+    if(status==="ok" && isLate) return false;
+    if(status==="late" && !isLate) return false;
+    if(!memberPassesDueFilter(m, dueFilter)) return false;
+    if(q){
+      const hay = [m.name,m.phone,m.plan,m.due,m.notes,(m.status||"")].join(" ").toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return !!m.phone;
+  });
+}
+function chargeVisibleMembers(){
+  const list = getVisibleChargeMembers();
+  if(!list.length) return toast("Nenhum aluno", "Não há alunos com telefone no filtro atual.");
+  if(!confirm(`Abrir WhatsApp para ${list.length} aluno(s) filtrado(s)?`)) return;
+  list.slice(0,10).forEach((m, i)=> setTimeout(()=>chargeMemberWA(m.id), i*500));
+  if(list.length > 10) toast("Limite de abas", "Abrimos os 10 primeiros para evitar bloqueio do navegador.");
+}
+function quickNewIncome(){ setTab("mov"); document.getElementById("movType").value="income"; document.getElementById("movAmount").focus(); }
+function quickNewExpense(){ setTab("mov"); document.getElementById("movType").value="expense"; document.getElementById("movAmount").focus(); }
 
 function renderDashboard(){
   const {from,to} = getDashRangeDates();
@@ -2104,6 +2324,8 @@ function renderDashboard(){
     `);
   });
   if(DB.moves.length===0) lastMovesBody.innerHTML = `<tr><td colspan="3" class="muted">Sem movimentações.</td></tr>`;
+  renderExecutiveWidgets(moves);
+  renderCharts(moves);
 }
 
 function renderMovesTable(){
@@ -2159,6 +2381,7 @@ function renderMovesTable(){
 function renderMembers(){
   const q = (document.getElementById("mSearch").value || "").trim().toLowerCase();
   const status = document.getElementById("mStatus").value;
+  const dueFilter = document.getElementById("mDueFilter")?.value || "all";
   const today = parseISO(isoToday()).getTime();
   const list = DB.members.filter(m=>{
     const canceled = (m.status || "active") === "canceled";
@@ -2166,6 +2389,7 @@ function renderMembers(){
     if(status==="canceled" && !canceled) return false;
     if(status==="ok" && (canceled || isLate)) return false;
     if(status==="late" && (canceled || !isLate)) return false;
+    if(dueFilter !== "all" && (canceled || !memberPassesDueFilter(m, dueFilter))) return false;
     if(q){
       const hay = [m.name,m.phone,m.plan,m.due,m.notes,(m.status||"")].join(" ").toLowerCase();
       if(!hay.includes(q)) return false;
@@ -2206,6 +2430,9 @@ function renderMembers(){
 }
 document.getElementById("mSearch").addEventListener("input", renderMembers);
 document.getElementById("mStatus").addEventListener("change", renderMembers);
+document.getElementById("mDueFilter")?.addEventListener("change", renderMembers);
+document.getElementById("btnChargeVisible")?.addEventListener("click", chargeVisibleMembers);
+document.getElementById("fabMain")?.addEventListener("click", ()=> document.getElementById("fabMenu")?.classList.toggle("show"));
 
 document.getElementById("btnHistLoad").addEventListener("click", ()=>{
   const id = document.getElementById("histMember").value;
