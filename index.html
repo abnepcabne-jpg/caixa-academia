@@ -758,7 +758,7 @@
             </div>
 
             <div class="field">
-              <label>Aluno (opcional)</label>
+              <label>Aluno (obrigatório para mensalidade)</label>
               <select id="movMember">
                 <option value="">—</option>
               </select>
@@ -1738,7 +1738,24 @@ function maybeSendPaymentWhatsApp(move){
   window.open(`https://wa.me/${waPhone}?text=${msg}`, "_blank");
 }
 
+function nextMonthlyDue(date){
+  const base = parseISO(date);
+  const day = base.getDate();
+  base.setDate(1);
+  base.setMonth(base.getMonth() + 1);
+  const lastDay = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+  base.setDate(Math.min(day, lastDay));
+  return [base.getFullYear(), String(base.getMonth()+1).padStart(2,"0"), String(base.getDate()).padStart(2,"0")].join("-");
+}
+
+let savingMovement = false;
 document.getElementById("btnAddMov").addEventListener("click", async ()=>{
+  if(savingMovement) return;
+  const button = document.getElementById("btnAddMov");
+  let paymentSaved = false;
+  let renewalError = null;
+  let resultTitle = "Salvo";
+  let resultMessage = "Movimentação registrada.";
   try{
     if(!DB.cash.isOpen) return toast("Caixa fechado", "Abra o caixa para registrar movimentações.");
     const type = document.getElementById("movType").value;
@@ -1750,35 +1767,60 @@ document.getElementById("btnAddMov").addEventListener("click", async ()=>{
     const desc = document.getElementById("movDesc").value.trim();
     const note = document.getElementById("movNote").value.trim();
     if(!date) return toast("Erro", "Selecione a data.");
-    if(!amount || amount <= 0) return toast("Erro", "Informe um valor válido.");
+    if(!Number.isFinite(amount) || amount <= 0) return toast("Erro", "Informe um valor válido.");
     if(!desc) return toast("Erro", "Informe a descrição.");
-    const staff = currentUserName();
-    const staffUserId = currentUserId();
-    const ins = { type, cat, amount, date, pay, member_id: memberId, description: desc, note, staff_name: staff, staff_user_id: staffUserId };
+    const isMonthly = type === "income" && (cat || "").trim().toLowerCase().includes("mensal");
+    const member = DB.members.find(x=>x.id===memberId);
+    if(isMonthly && !member) return toast("Selecione o aluno", "A mensalidade precisa estar vinculada a um aluno cadastrado para atualizar o vencimento.");
+    const renew = isMonthly && (member.status || "active") !== "canceled";
+    const newDue = renew ? nextMonthlyDue(date) : null;
+    savingMovement = true;
+    button.disabled = true;
+    const ins = { type, cat, amount, date, pay, member_id: memberId, description: desc, note, staff_name: currentUserName(), staff_user_id: currentUserId() };
     const { error } = await sb.from("moves").insert(ins);
     if(error) throw error;
-    if(type === "income" && memberId && (cat || "").trim().toLowerCase().includes("mensal")){
-      const memRef = DB.members.find(x=>x.id===memberId);
-      if(memRef && (memRef.status||"active")==="canceled"){
-        toast("Aviso","Matrícula cancelada: pagamento registrado, mas o vencimento não foi renovado.");
-      } else {
-        const base = parseISO(date);
-        base.setMonth(base.getMonth() + 1);
-        const off = base.getTimezoneOffset();
-        const local = new Date(base.getTime() - off*60000);
-        const newDue = local.toISOString().slice(0,10);
-        const { error: err2 } = await sb.from("members").update({ due: newDue }).eq("id", memberId);
-        if(err2) throw err2;
-        toast("Mensalidade atualizada", `Novo vencimento: ${fmtDateBR(newDue)}`);
-      }
-    } else toast("Salvo", "Movimentação registrada.");
+    paymentSaved = true;
+    // Limpar assim que o lançamento for salvo, mesmo se a renovação falhar.
     document.getElementById("movAmount").value = "";
     document.getElementById("movDesc").value = "";
     document.getElementById("movNote").value = "";
+    if(renew){
+      try{
+        const { data: updated, error: updateError } = await sb.from("members")
+          .update({ due: newDue }).eq("id", memberId).select("id, due").single();
+        if(updateError) throw updateError;
+        if(!updated || updated.id !== memberId || updated.due !== newDue)
+          throw new Error("O banco não confirmou a atualização do vencimento. Verifique as permissões do cadastro de alunos.");
+        member.due = updated.due;
+        resultTitle = "Mensalidade atualizada";
+        resultMessage = "Novo vencimento: " + fmtDateBR(newDue);
+        if(newDue < isoToday()) resultMessage += ". O vencimento ainda está no passado: confira o período pago no cadastro do aluno.";
+      }catch(e){ renewalError = e; }
+    }else if(isMonthly){
+      resultTitle = "Aviso";
+      resultMessage = "Matrícula cancelada: pagamento registrado, mas o vencimento não foi renovado.";
+    }
     await loadAll();
+    if(renewalError){
+      const message = "O pagamento foi salvo, mas o vencimento não foi atualizado. Não registre novamente. Confira o lançamento e ajuste o vencimento em Alunos > Editar. Detalhe: " + (renewalError.message || String(renewalError));
+      toast("Pagamento salvo; renovação pendente", message);
+      alert(message);
+      return;
+    }
+    toast(resultTitle, resultMessage);
     maybeSendPaymentWhatsApp({ type, cat, amount, date, pay, memberId });
-  }catch(e){ toast("Erro", e.message || String(e)); }
+  }catch(e){
+    const message = paymentSaved
+      ? "O pagamento já foi salvo. Não registre novamente. Recarregue os dados e confira o vencimento do aluno. " + (renewalError ? "A renovação falhou. " : "") + (e.message || String(e))
+      : e.message || String(e);
+    toast(paymentSaved ? "Pagamento salvo; confira os dados" : "Erro", message);
+    if(paymentSaved) alert(message);
+  }finally{
+    savingMovement = false;
+    button.disabled = false;
+  }
 });
+
 document.getElementById("btnClearMov").addEventListener("click", ()=>{
   document.getElementById("movAmount").value = "";
   document.getElementById("movDesc").value = "";
